@@ -1,0 +1,13 @@
+# Python caches and packaging artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Jupyter Book / MyST build output
+_build/
+
+# Local debug output
+output.txt
+
+# OS/editor noise
+.DS_Store
