@@ -143,7 +143,7 @@ def _algorithm_sequence(text: str, indent: int = 0) -> list[str]:
 
 
 def algorithm_to_myst(body: str) -> str:
-    """Convert one algorithm2e environment body to a native proof:algorithm directive."""
+    """Convert one algorithm2e environment body to MyST's native algorithm proof directive."""
     caption_match = re.search(r"\\caption\{([^{}]+)\}", body)
     label_match = re.search(r"\\label\{([^{}]+)\}", body)
     caption = caption_match.group(1).strip() if caption_match else "Algorithm"
@@ -159,7 +159,7 @@ def algorithm_to_myst(body: str) -> str:
     )
     body = strip_tex_comments(body)
 
-    lines = [f":::{{proof:algorithm}} {caption}"]
+    lines = [f":::{{prf:algorithm}} {caption}"]
     if label:
         lines.append(f":label: {label}")
     lines.append("")
@@ -204,7 +204,7 @@ def mark_proof_environments(text: str) -> str:
 
 
 def restore_proof_directives(text: str) -> str:
-    """Turn semantic proof markers into native MyST proof directives."""
+    """Turn semantic proof markers into MyST's native proof directives."""
     pattern = re.compile(
         r"BDLPROOFBEGIN\s+(example|proposition|definition|lemma|theorem|remark|assumption|proof)(?:\s+([^\s]+))?\s*\n(.*?)\n\s*BDLPROOFEND\s+\1",
         flags=re.DOTALL,
@@ -214,7 +214,7 @@ def restore_proof_directives(text: str) -> str:
         kind = match.group(1)
         label = match.group(2)
         body = match.group(3).strip()
-        directive = "proof" if kind == "proof" else f"proof:{kind}"
+        directive = "proof" if kind == "proof" else f"prf:{kind}"
         lines = [f":::{{{directive}}}"]
         if label:
             lines.append(f":label: {label}")
@@ -231,9 +231,15 @@ def restore_proof_directives(text: str) -> str:
 
 
 def normalize_headings_for_latex_pass(text: str) -> str:
-    """Map book-level headings to forms MyST's standalone LaTeX converter can handle."""
+    """Map a chapter heading to a standalone heading for MyST's LaTeX conversion pass.
+
+    The chapter-level label is intentionally removed here. Individual chapter
+    converters add one canonical page target after the isolated conversion,
+    which avoids duplicate page identifiers while preserving all lower-level
+    semantic labels in the converted content.
+    """
     text = re.sub(
-        r"\\chapter(?:\[[^\]]*\])?\{([^{}]+)\}\s*",
+        r"\\chapter(?:\[[^\]]*\])?\{([^{}]+)\}\s*(?:\\label\{(?:chap|cha):[^{}]+\}\s*)?",
         lambda match: f"\\section*{{{match.group(1)}}}\n",
         text,
         count=1,
