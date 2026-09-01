@@ -38,9 +38,41 @@ def prepare_latex(text: str):
 
 
 def clean_generated_markdown(text: str, structures) -> str:
-    """Restore native MyST structures and apply minimal chapter cleanup."""
-    text = re.sub(r"^#\s+Introduction to sampling\s*\n", "", text, count=1)
+    """Restore native MyST structures and remove export-only chapter metadata."""
+    # The isolated `myst build --md` export may prepend a YAML frontmatter block.
+    # It is project/export metadata rather than chapter content, so remove only a
+    # leading frontmatter block and leave any later thematic breaks untouched.
+    text = re.sub(r"\A---\s*\n.*?\n---\s*\n", "", text, count=1, flags=re.DOTALL)
+
     text = restore_extracted_structures(text, structures)
+
+    # MyST's standalone TeX conversion can retain the chapter target and heading
+    # after we add the canonical versions below. Remove only leading duplicates.
+    text = re.sub(
+        rf"\A\s*\({re.escape(CHAPTER_LABEL)}\)=\s*\n",
+        "",
+        text,
+        count=1,
+    )
+    text = re.sub(
+        rf"\A\s*#\s+{re.escape(CHAPTER_TITLE)}\s*\n",
+        "",
+        text,
+        count=1,
+    )
+    text = re.sub(
+        rf"\A\s*\({re.escape(CHAPTER_LABEL)}\)=\s*\n",
+        "",
+        text,
+        count=1,
+    )
+    text = re.sub(
+        rf"\A\s*#\s+{re.escape(CHAPTER_TITLE)}\s*\n",
+        "",
+        text,
+        count=1,
+    )
+
     text = re.sub(r"\n{3,}", "\n\n", text)
     return f"({CHAPTER_LABEL})=\n# {CHAPTER_TITLE}\n\n{text.lstrip()}"
 
