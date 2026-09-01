@@ -52,17 +52,16 @@ bash scripts/run_part1_conversions.sh
 
 ## Pull changes and preview locally
 
-Update the local repository, synchronize the environment, regenerate the migrated Markdown content, and start the local preview server from the MyST project root:
+For the normal local preview workflow, run from the repository root:
 
 ```bash
 git pull
-uv sync --extra dev
 bash scripts/run_conversions.sh
 cd content
 uv run jupyter book start
 ```
 
-When dependencies in `pyproject.toml` change, run `uv sync --extra dev` again.
+Run `uv sync --extra dev` first when setting up a fresh checkout or whenever dependencies in `pyproject.toml` change.
 
 For a production HTML build, run from the repository root:
 
