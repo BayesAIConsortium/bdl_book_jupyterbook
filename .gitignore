@@ -6,6 +6,9 @@ __pycache__/
 # Jupyter Book / MyST build output
 _build/
 
+# Local Node installation artifacts
+node_modules/
+
 # Local debug output
 output.txt
 
