@@ -151,8 +151,8 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("content/sampling_methods/intro_working.md"),
-        help="Working Chapter 1 output; the book scaffold keeps intro.md as a placeholder.",
+        default=Path("content/sampling_methods/intro.md"),
+        help="Chapter 1 output used by the normal book TOC.",
     )
     args = parser.parse_args()
 
