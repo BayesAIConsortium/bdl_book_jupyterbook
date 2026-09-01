@@ -5,8 +5,6 @@ project:
   description: A collaborative handbook on Bayesian deep learning.
   bibliography:
     - references.bib
-  plugins:
-    - scripts/proofs.mjs
   toc:
     - file: content/index.md
     - title: Front matter
