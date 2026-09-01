@@ -1,0 +1,101 @@
+version: 1
+
+project:
+  title: Handbook of Bayesian Deep Learning
+  description: A collaborative handbook on Bayesian deep learning.
+  bibliography:
+    - ../references.bib
+  toc:
+    - file: index.md
+    - title: Front matter
+      children:
+        - file: frontmatter/preface.md
+        - file: frontmatter/readers_guide.md
+        - file: frontmatter/authors.md
+        - file: frontmatter/leadership_and_ai.md
+        - file: frontmatter/acknowledgements.md
+        - file: frontmatter/usage_rights.md
+    # BEGIN GENERATED BOOK TOC
+    - file: sampling_methods/index.md
+      children:
+        - file: sampling_methods/intro.md
+        - file: sampling_methods/sg_mcmc.md
+        - file: sampling_methods/sbi.md
+        - file: sampling_methods/multilevel_smc.md
+        - file: sampling_methods/low_precision_sampling.md
+        - file: sampling_methods/discrete_sampling.md
+    - file: laplace_approximations/index.md
+      children:
+        - file: laplace_approximations/intro.md
+        - file: laplace_approximations/linearized.md
+        - file: laplace_approximations/diffgeo.md
+        - file: laplace_approximations/analytic_functionality.md
+        - file: laplace_approximations/differentiable.md
+    - file: vi/index.md
+      children:
+        - file: vi/intro.md
+        - file: vi/mean_field_vi.md
+        - file: vi/dropout_based_vi.md
+        - file: vi/natural_gradient_vi.md
+        - file: vi/particle_based_vi.md
+        - file: vi/function_space_vi.md
+        - file: vi/sequential_vi.md
+    - file: ensemble_methods/index.md
+      children:
+        - file: ensemble_methods/intro.md
+        - file: ensemble_methods/hybrid_ensemble_sampling.md
+        - file: ensemble_methods/practical_applications.md
+        - file: ensemble_methods/pac_bayesian_ensembles.md
+    - file: kernel_methods/index.md
+      children:
+        - file: kernel_methods/intro.md
+        - file: kernel_methods/dkl.md
+        - file: kernel_methods/dgps.md
+        - file: kernel_methods/dkps_and_dkms.md
+        - file: kernel_methods/meta_learning.md
+    - file: priors/index.md
+      children:
+        - file: priors/intro.md
+        - file: priors/stat_properties.md
+        - file: priors/informative_priors.md
+        - file: priors/function_space_priors.md
+    - file: identifiability_and_symmetries/index.md
+      children:
+        - file: identifiability_and_symmetries/symmetries_in_bnns.md
+        - file: identifiability_and_symmetries/symmetries_and_sampling.md
+        - file: identifiability_and_symmetries/identifying_symmetries.md
+        - file: identifiability_and_symmetries/interpretable_inference.md
+        - file: identifiability_and_symmetries/softmax_gating_functions.md
+    - file: scalability/index.md
+      children:
+        - file: scalability/single_forward_pass.md
+        - file: scalability/scalable_gps.md
+        - file: scalability/last_layer_inference.md
+        - file: scalability/scalable_laplace.md
+        - file: scalability/compression_with_quantization.md
+        - file: scalability/compression_without_quantization.md
+    - file: applications/index.md
+      children:
+        - file: applications/bayesian_llms.md
+        - file: applications/selective_classification.md
+        - file: applications/biomedical_data_imputation.md
+        - file: applications/spatiotemporal_modeling.md
+        - file: applications/software_for_bdl.md
+    - file: topical_developments/index.md
+      children:
+        - file: topical_developments/subspace_inference.md
+        - file: topical_developments/implicitly_bayesian_prediction.md
+        - file: topical_developments/diffusion_models.md
+        - file: topical_developments/meta_models.md
+        - file: topical_developments/singular_learning_theory.md
+        - file: topical_developments/active_learning.md
+        - file: topical_developments/causal_aware_bdl.md
+        - file: topical_developments/credal_bdl.md
+        - file: topical_developments/bayesian_rl.md
+    # END GENERATED BOOK TOC
+
+site:
+  template: book-theme
+  options:
+    logo_text: Handbook of Bayesian Deep Learning
+    folders: true
