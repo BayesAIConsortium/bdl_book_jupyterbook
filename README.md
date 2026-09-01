@@ -71,4 +71,15 @@ cd content
 uv run jupyter book build --html
 ```
 
+## Netlify
+
+Because the MyST project root is `content/`, Netlify must build from that directory while still installing the Python project from the repository root. Use:
+
+```text
+Build command: python -m pip install . && cd content && jupyter book build --html
+Publish directory: content/_build/html
+```
+
+The Netlify base directory should remain blank / at the repository root.
+
 The repository is intentionally book-first rather than a reusable Python package. TeX-to-MyST migration helpers live under `scripts/`.
