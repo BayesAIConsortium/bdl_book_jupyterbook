@@ -45,63 +45,119 @@ def parse_braced(text: str, start: int) -> tuple[str, int]:
     raise ValueError("Unclosed brace group")
 
 
-def convert_latex_references(text: str) -> str:
-    """Translate common LaTeX cross-references to MyST internal references.
+def _clean_inline_tex(text: str) -> str:
+    """Convert the conservative inline TeX subset used in extracted captions."""
+    text = normalize_notation(text)
+    text = re.sub(r"\\(?:emph|textit)\{([^{}]*)\}", r"*\1*", text)
+    text = re.sub(r"\\textbf\{([^{}]*)\}", r"**\1**", text)
+    text = text.replace(r"\&", "&")
+    text = text.replace("~", " ")
+    text = text.replace("---", "—")
+    text = text.replace("--", "–")
+    return re.sub(r"\s+", " ", text).strip()
 
-    The original TeX labels are retained as MyST target identifiers, so these
-    links can resolve immediately against scaffold placeholder pages and remain
-    valid when those placeholders are later replaced by migrated content.
+
+def _section_label_titles(text: str) -> dict[str, str]:
+    """Map section-like labels to human-readable titles for robust web references."""
+    titles: dict[str, str] = {}
+    pattern = re.compile(
+        r"\\(?:section|subsection|subsubsection)\*?\{([^{}]+)\}\s*\\label\{([^{}]+)\}",
+        re.DOTALL,
+    )
+    for match in pattern.finditer(text):
+        titles[match.group(2)] = _clean_inline_tex(match.group(1))
+    return titles
+
+
+def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
+    """Protect semantic TeX references that need MyST-friendly display text.
+
+    MyST's LaTeX converter can resolve many references directly, but section
+    numbers are not necessarily enumerated in the web theme and can surface as
+    ``??``. Equation references also lose the word ``Equation`` in some contexts.
+    Preserve those semantics explicitly while retaining native MyST targets.
     """
+    structures: list[ExtractedStructure] = []
+    section_titles = _section_label_titles(text)
+
+    def placeholder(markdown: str) -> str:
+        token = f"BDLREFERENCEPLACEHOLDER{len(structures):04d}"
+        structures.append(ExtractedStructure(token, markdown))
+        return token
+
     text = re.sub(
-        r"\b(Part|Chapter|Section|Figure|Table|Equation)~\\(?:ref|autoref)\{([^{}]+)\}",
-        lambda match: f"{match.group(1)} [](#${match.group(2)})".replace("#$", "#"),
+        r"\b([Ee]quation)\s*~?\s*\\eqref\{([^{}]+)\}",
+        lambda m: placeholder(f"{m.group(1)} [](#{m.group(2)})"),
         text,
     )
     text = re.sub(
         r"\\eqref\{([^{}]+)\}",
-        lambda match: f"[](#${match.group(1)})".replace("#$", "#"),
+        lambda m: placeholder(f"Equation [](#{m.group(1)})"),
         text,
     )
     text = re.sub(
-        r"\\(?:ref|autoref)\{([^{}]+)\}",
-        lambda match: f"[](#${match.group(1)})".replace("#$", "#"),
+        r"\bSection\s*~?\s*\\ref\{([^{}]+)\}",
+        lambda m: placeholder(
+            f"Section [{section_titles.get(m.group(1), 'link')}](#{m.group(1)})"
+        ),
         text,
     )
-    return text
+    return text, structures
 
 
 def _clean_algorithm_fragment(text: str) -> str:
     text = normalize_notation(text)
     text = text.replace(r"\KwTo", " to ")
     text = text.replace(r"\;", "")
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def _algorithm_sequence(text: str, indent: int = 0) -> list[str]:
     """Translate the algorithm2e subset used by the book to Markdown steps."""
     lines: list[str] = []
     pos = 0
-    prefix = "  " * indent
+    prefix = "    " * indent
 
     while pos < len(text):
         if text[pos].isspace():
             pos += 1
             continue
 
+        if text.startswith(r"\[", pos):
+            end = text.find(r"\]", pos + 2)
+            if end < 0:
+                end = len(text)
+                next_pos = end
+            else:
+                next_pos = end + 2
+            math = normalize_notation(text[pos + 2 : end]).strip()
+            lines.extend([f"{prefix}$$", math, f"{prefix}$$"])
+            pos = next_pos
+            if text.startswith(r"\;", pos):
+                pos += 2
+            continue
+
         matched = False
         for command, label in (
-            (r"\Input", "**Inputs**"),
-            (r"\Output", "**Output**"),
-            (r"\Return", "**Return**"),
-            (r"\tcp", "*Note*"),
+            (r"\Input", "Inputs"),
+            (r"\Output", "Output"),
         ):
             if text.startswith(command, pos):
                 arg, pos = parse_braced(text, pos + len(command))
-                lines.append(f"{prefix}{label} {_clean_algorithm_fragment(arg)}")
+                lines.append(f"{prefix}- **{label}:** {_clean_algorithm_fragment(arg)}")
                 matched = True
                 break
         if matched:
+            continue
+
+        if text.startswith(r"\Return", pos):
+            arg, pos = parse_braced(text, pos + len(r"\Return"))
+            lines.append(f"{prefix}1. **Return** {_clean_algorithm_fragment(arg)}")
+            continue
+
+        if text.startswith(r"\tcp", pos):
+            arg, pos = parse_braced(text, pos + len(r"\tcp"))
+            lines.append(f"{prefix}*Note:* {_clean_algorithm_fragment(arg)}")
             continue
 
         for command, label in ((r"\For", "For"), (r"\While", "While"), (r"\If", "If")):
@@ -146,7 +202,7 @@ def algorithm_to_myst(body: str) -> str:
     """Convert one algorithm2e environment body to MyST's native algorithm proof directive."""
     caption_match = re.search(r"\\caption\{([^{}]+)\}", body)
     label_match = re.search(r"\\label\{([^{}]+)\}", body)
-    caption = caption_match.group(1).strip() if caption_match else "Algorithm"
+    caption = _clean_inline_tex(caption_match.group(1)) if caption_match else "Algorithm"
     label = label_match.group(1).strip() if label_match else None
 
     body = re.sub(r"\\caption\{[^{}]+\}\s*", "", body, count=1)
@@ -169,12 +225,7 @@ def algorithm_to_myst(body: str) -> str:
 
 
 def extract_algorithms(text: str) -> tuple[str, list[ExtractedStructure]]:
-    """Replace active algorithm2e environments with placeholders and MyST versions.
-
-    Strip TeX comments before semantic extraction so legacy environments that
-    are fully commented out cannot be mistaken for active algorithms. This also
-    ensures later theorem/proof extraction sees the same active source only.
-    """
+    """Replace active algorithm2e environments with placeholders and MyST versions."""
     text = strip_tex_comments(text)
     structures: list[ExtractedStructure] = []
     pattern = re.compile(
@@ -185,6 +236,67 @@ def extract_algorithms(text: str) -> tuple[str, list[ExtractedStructure]]:
     def replace(match: re.Match[str]) -> str:
         placeholder = f"BDLALGORITHMPLACEHOLDER{len(structures):04d}"
         structures.append(ExtractedStructure(placeholder, algorithm_to_myst(match.group(1))))
+        return f"\n\n{placeholder}\n\n"
+
+    return pattern.sub(replace, text), structures
+
+
+def figure_to_myst(body: str) -> str:
+    """Convert a TeX figure environment to a native MyST figure/subfigure block."""
+    label_match = re.search(r"\\label\{([^{}]+)\}", body)
+    caption_pos = body.find(r"\caption")
+    caption = ""
+    if caption_pos >= 0:
+        brace = body.find("{", caption_pos + len(r"\caption"))
+        if brace >= 0:
+            raw_caption, _ = parse_braced(body, brace)
+            caption = _clean_inline_tex(raw_caption)
+
+    images = re.findall(
+        r"\\includegraphics(?:\[[^\]]*\])?\{([^{}]+)\}",
+        body,
+    )
+    if not images:
+        return ""
+
+    label = label_match.group(1).strip() if label_match else None
+    if len(images) == 1:
+        lines = [f":::{{figure}} {images[0]}"]
+        if label:
+            lines.append(f":label: {label}")
+        lines.append(":align: center")
+        if caption:
+            lines.extend(["", caption])
+        lines.append(":::")
+        return "\n".join(lines)
+
+    lines = [":::{figure}"]
+    if label:
+        lines.append(f":label: {label}")
+    lines.append(":class: grid grid-cols-2 items-end gap-4")
+    lines.append("")
+    for image in images:
+        lines.extend([f"![]({image})", ""])
+    if caption:
+        lines.append(caption)
+    lines.append(":::")
+    return "\n".join(lines)
+
+
+def extract_figures(text: str) -> tuple[str, list[ExtractedStructure]]:
+    """Replace TeX figure environments with placeholders for native MyST figures."""
+    structures: list[ExtractedStructure] = []
+    pattern = re.compile(
+        r"\\begin\{figure\}(?:\[[^\]]*\])?(.*?)\\end\{figure\}",
+        re.DOTALL,
+    )
+
+    def replace(match: re.Match[str]) -> str:
+        markdown = figure_to_myst(match.group(1))
+        if not markdown:
+            return match.group(0)
+        placeholder = f"BDLFIGUREPLACEHOLDER{len(structures):04d}"
+        structures.append(ExtractedStructure(placeholder, markdown))
         return f"\n\n{placeholder}\n\n"
 
     return pattern.sub(replace, text), structures
@@ -237,20 +349,18 @@ def restore_proof_directives(text: str) -> str:
 
 
 def normalize_headings_for_latex_pass(text: str) -> str:
-    """Map a chapter heading to a standalone heading for MyST's LaTeX conversion pass.
+    """Remove the source chapter heading before standalone MyST conversion.
 
-    The chapter-level label is intentionally removed here. Individual chapter
-    converters add one canonical page target after the isolated conversion,
-    which avoids duplicate page identifiers while preserving all lower-level
-    semantic labels in the converted content.
+    Individual chapter converters add one canonical page title and target after
+    conversion. Keeping a synthetic chapter/section heading in the isolated TeX
+    pass makes the web theme display the chapter title twice.
     """
-    text = re.sub(
-        r"\\chapter(?:\[[^\]]*\])?\{([^{}]+)\}\s*(?:\\label\{(?:chap|cha):[^{}]+\}\s*)?",
-        lambda match: f"\\section*{{{match.group(1)}}}\n",
+    return re.sub(
+        r"\\chapter(?:\[[^\]]*\])?\{[^{}]+\}\s*(?:\\label\{(?:chap|cha):[^{}]+\}\s*)?",
+        "",
         text,
         count=1,
     )
-    return text
 
 
 def restore_extracted_structures(text: str, structures: list[ExtractedStructure]) -> str:
