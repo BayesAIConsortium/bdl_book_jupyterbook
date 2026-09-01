@@ -62,8 +62,24 @@ TYPOGRAPHIC_COMMANDS: tuple[str, ...] = (
 )
 
 
+def normalize_indicator(text: str) -> str:
+    r"""Expand the book's indicator-function macro to standard LaTeX.
+
+    The authoritative TeX macro is ``\Ind[o] = \mathds 1(o)``. MyST/KaTeX does
+    not know that book-specific command, so retain the same round-bracket
+    semantics using a standard blackboard-bold 1.
+    """
+    text = re.sub(
+        r"\\Ind\[([^\]]+)\]",
+        lambda match: rf"\mathbb{{1}}\left({match.group(1)}\right)",
+        text,
+    )
+    return re.sub(r"\\Ind\b", r"\\mathbb{1}", text)
+
+
 def normalize_notation(text: str) -> str:
     """Expand the conservative subset of global book notation macros."""
+    text = normalize_indicator(text)
     for source, replacement in COMPOUND_REPLACEMENTS:
         text = text.replace(source, replacement)
     for source, replacement in SIMPLE_MATH_REPLACEMENTS:
@@ -72,8 +88,15 @@ def normalize_notation(text: str) -> str:
 
 
 def strip_tex_comments(text: str) -> str:
-    """Remove ordinary TeX comments while retaining escaped percent signs."""
-    return re.sub(r"(?<!\\)%.*$", "", text, flags=re.MULTILINE)
+    """Remove TeX comments without introducing artificial paragraph breaks.
+
+    A TeX percent comment consumes the remainder of its physical line, including
+    the end-of-line token. Removing only the comment text leaves runs of blank
+    lines behind, which a Markdown converter can incorrectly interpret as new
+    paragraphs. Consume the commented newline as TeX does; any genuine blank
+    lines already present in the source remain untouched.
+    """
+    return re.sub(r"(?<!\\)%[^\n]*(?:\n|$)", "", text)
 
 
 def normalize_typography(text: str) -> str:

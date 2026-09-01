@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import re
-import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -15,9 +14,6 @@ TOC_BEGIN = "    # BEGIN GENERATED BOOK TOC"
 TOC_END = "    # END GENERATED BOOK TOC"
 MYST_CONFIG = Path("myst.yml")
 CONTENT_ROOT = Path("content")
-PARKED_CHAPTERS: dict[Path, Path] = {
-    Path("content/sampling_methods/intro.md"): Path("content/sampling_methods/intro_working.md"),
-}
 
 
 @dataclass(frozen=True)
@@ -159,23 +155,6 @@ def write_placeholder(path: Path, label: str, title: str, kind: str) -> bool:
     return True
 
 
-def park_and_placeholder(path: Path, parked_path: Path, label: str, title: str) -> bool:
-    """Preserve an existing migrated page and replace it with a chapter placeholder."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-
-    expected_placeholder = placeholder_text(label, title, "Chapter")
-    if path.exists() and path.read_text(encoding="utf-8") != expected_placeholder:
-        if not parked_path.exists():
-            parked_path.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(path, parked_path)
-            print(f"Parked {path} -> {parked_path}")
-
-    changed = not path.exists() or path.read_text(encoding="utf-8") != expected_placeholder
-    if changed:
-        path.write_text(expected_placeholder, encoding="utf-8")
-    return changed
-
-
 def render_toc(parts: tuple[Part, ...]) -> str:
     lines: list[str] = []
     for part in parts:
@@ -215,16 +194,7 @@ def main() -> None:
         ):
             created += 1
         for chapter in part.chapters:
-            parked_path = PARKED_CHAPTERS.get(chapter.output)
-            if parked_path is not None:
-                if park_and_placeholder(
-                    chapter.output,
-                    parked_path,
-                    chapter.label,
-                    chapter.title,
-                ):
-                    created += 1
-            elif write_placeholder(chapter.output, chapter.label, chapter.title, "Chapter"):
+            if write_placeholder(chapter.output, chapter.label, chapter.title, "Chapter"):
                 created += 1
 
     update_myst_toc(parts)
