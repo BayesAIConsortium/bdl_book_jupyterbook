@@ -12,8 +12,8 @@ from common import tex_path
 
 TOC_BEGIN = "    # BEGIN GENERATED BOOK TOC"
 TOC_END = "    # END GENERATED BOOK TOC"
-MYST_CONFIG = Path("myst.yml")
 CONTENT_ROOT = Path("content")
+MYST_CONFIG = CONTENT_ROOT / "myst.yml"
 
 
 @dataclass(frozen=True)
@@ -155,13 +155,18 @@ def write_placeholder(path: Path, label: str, title: str, kind: str) -> bool:
     return True
 
 
+def toc_path(path: Path) -> str:
+    """Return a path relative to the MyST project root under content/."""
+    return path.relative_to(CONTENT_ROOT).as_posix()
+
+
 def render_toc(parts: tuple[Part, ...]) -> str:
     lines: list[str] = []
     for part in parts:
-        lines.append(f"    - file: {part.output.as_posix()}")
+        lines.append(f"    - file: {toc_path(part.output)}")
         lines.append("      children:")
         for chapter in part.chapters:
-            lines.append(f"        - file: {chapter.output.as_posix()}")
+            lines.append(f"        - file: {toc_path(chapter.output)}")
     return "\n".join(lines)
 
 
