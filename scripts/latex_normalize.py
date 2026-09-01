@@ -63,7 +63,7 @@ TYPOGRAPHIC_COMMANDS: tuple[str, ...] = (
 
 
 def normalize_indicator(text: str) -> str:
-    """Expand the book's indicator-function macro to standard LaTeX.
+    r"""Expand the book's indicator-function macro to standard LaTeX.
 
     The authoritative TeX macro is ``\Ind[o] = \mathds 1(o)``. MyST/KaTeX does
     not know that book-specific command, so retain the same round-bracket
