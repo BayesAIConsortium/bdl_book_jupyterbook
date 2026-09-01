@@ -15,6 +15,8 @@ from common import TEX_ROOT, tex_path
 from latex_normalize import normalize_latex
 from myst_structures import (
     extract_algorithms,
+    extract_figures,
+    extract_references,
     mark_proof_environments,
     normalize_headings_for_latex_pass,
     restore_extracted_structures,
@@ -31,6 +33,13 @@ SOURCE_IMAGE_PREFIX = "sampling_methods/intro/fig/"
 def prepare_latex(text: str):
     """Apply shared structural extraction and LaTeX normalization."""
     text, structures = extract_algorithms(text)
+
+    text, figure_structures = extract_figures(text)
+    structures.extend(figure_structures)
+
+    text, reference_structures = extract_references(text)
+    structures.extend(reference_structures)
+
     text = mark_proof_environments(text)
     text = normalize_latex(text)
     text = normalize_headings_for_latex_pass(text)
@@ -39,15 +48,11 @@ def prepare_latex(text: str):
 
 def clean_generated_markdown(text: str, structures) -> str:
     """Restore native MyST structures and remove export-only chapter metadata."""
-    # The isolated `myst build --md` export may prepend a YAML frontmatter block.
-    # It is project/export metadata rather than chapter content, so remove only a
-    # leading frontmatter block and leave any later thematic breaks untouched.
     text = re.sub(r"\A---\s*\n.*?\n---\s*\n", "", text, count=1, flags=re.DOTALL)
-
     text = restore_extracted_structures(text, structures)
 
-    # MyST's standalone TeX conversion can retain the chapter target and heading
-    # after we add the canonical versions below. Remove only leading duplicates.
+    # Defensive cleanup for stale exports created before the source chapter
+    # heading was removed ahead of the isolated conversion pass.
     text = re.sub(
         rf"\A\s*\({re.escape(CHAPTER_LABEL)}\)=\s*\n",
         "",
@@ -55,19 +60,7 @@ def clean_generated_markdown(text: str, structures) -> str:
         count=1,
     )
     text = re.sub(
-        rf"\A\s*#\s+{re.escape(CHAPTER_TITLE)}\s*\n",
-        "",
-        text,
-        count=1,
-    )
-    text = re.sub(
-        rf"\A\s*\({re.escape(CHAPTER_LABEL)}\)=\s*\n",
-        "",
-        text,
-        count=1,
-    )
-    text = re.sub(
-        rf"\A\s*#\s+{re.escape(CHAPTER_TITLE)}\s*\n",
+        rf"\A\s*#+\s+{re.escape(CHAPTER_TITLE)}\s*\n",
         "",
         text,
         count=1,
@@ -100,8 +93,6 @@ def run_myst_isolated(normalized: str) -> tuple[str, str]:
         tex_file = work_dir / "chapter.tex"
         tex_file.write_text(normalized, encoding="utf-8")
 
-        # Preserve repository-relative figure paths for the TeX-to-Markdown pass
-        # without exposing MyST to the original source files as project inputs.
         (work_dir / "sampling_methods").symlink_to(TEX_ROOT.resolve() / "sampling_methods")
 
         log_path = work_dir / "myst.log"
