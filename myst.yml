@@ -16,7 +16,7 @@ project:
         - file: content/frontmatter/acknowledgements.md
         - file: content/frontmatter/usage_rights.md
     # BEGIN GENERATED BOOK TOC
-    - file: content/parts/sampling_methods.md
+    - file: content/sampling_methods/index.md
       children:
         - file: content/sampling_methods/intro.md
         - file: content/sampling_methods/sg_mcmc.md
@@ -24,14 +24,14 @@ project:
         - file: content/sampling_methods/multilevel_smc.md
         - file: content/sampling_methods/low_precision_sampling.md
         - file: content/sampling_methods/discrete_sampling.md
-    - file: content/parts/laplace_approximations.md
+    - file: content/laplace_approximations/index.md
       children:
         - file: content/laplace_approximations/intro.md
         - file: content/laplace_approximations/linearized.md
         - file: content/laplace_approximations/diffgeo.md
         - file: content/laplace_approximations/analytic_functionality.md
         - file: content/laplace_approximations/differentiable.md
-    - file: content/parts/vi.md
+    - file: content/vi/index.md
       children:
         - file: content/vi/intro.md
         - file: content/vi/mean_field_vi.md
@@ -40,33 +40,33 @@ project:
         - file: content/vi/particle_based_vi.md
         - file: content/vi/function_space_vi.md
         - file: content/vi/sequential_vi.md
-    - file: content/parts/ensemble_methods.md
+    - file: content/ensemble_methods/index.md
       children:
         - file: content/ensemble_methods/intro.md
         - file: content/ensemble_methods/hybrid_ensemble_sampling.md
         - file: content/ensemble_methods/practical_applications.md
         - file: content/ensemble_methods/pac_bayesian_ensembles.md
-    - file: content/parts/kernel_methods.md
+    - file: content/kernel_methods/index.md
       children:
         - file: content/kernel_methods/intro.md
         - file: content/kernel_methods/dkl.md
         - file: content/kernel_methods/dgps.md
         - file: content/kernel_methods/dkps_and_dkms.md
         - file: content/kernel_methods/meta_learning.md
-    - file: content/parts/priors.md
+    - file: content/priors/index.md
       children:
         - file: content/priors/intro.md
         - file: content/priors/stat_properties.md
         - file: content/priors/informative_priors.md
         - file: content/priors/function_space_priors.md
-    - file: content/parts/identifiability_and_symmetries.md
+    - file: content/identifiability_and_symmetries/index.md
       children:
         - file: content/identifiability_and_symmetries/symmetries_in_bnns.md
         - file: content/identifiability_and_symmetries/symmetries_and_sampling.md
         - file: content/identifiability_and_symmetries/identifying_symmetries.md
         - file: content/identifiability_and_symmetries/interpretable_inference.md
         - file: content/identifiability_and_symmetries/softmax_gating_functions.md
-    - file: content/parts/scalability.md
+    - file: content/scalability/index.md
       children:
         - file: content/scalability/single_forward_pass.md
         - file: content/scalability/scalable_gps.md
@@ -74,14 +74,14 @@ project:
         - file: content/scalability/scalable_laplace.md
         - file: content/scalability/compression_with_quantization.md
         - file: content/scalability/compression_without_quantization.md
-    - file: content/parts/applications.md
+    - file: content/applications/index.md
       children:
         - file: content/applications/bayesian_llms.md
         - file: content/applications/selective_classification.md
         - file: content/applications/biomedical_data_imputation.md
         - file: content/applications/spatiotemporal_modeling.md
         - file: content/applications/software_for_bdl.md
-    - file: content/parts/topical_developments.md
+    - file: content/topical_developments/index.md
       children:
         - file: content/topical_developments/subspace_inference.md
         - file: content/topical_developments/implicitly_bayesian_prediction.md
@@ -98,3 +98,4 @@ site:
   template: book-theme
   options:
     logo_text: Handbook of Bayesian Deep Learning
+    folders: true
