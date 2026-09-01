@@ -287,10 +287,12 @@ def figure_to_myst(body: str) -> str:
         lines.append(":::")
         return "\n".join(lines)
 
+    # Multiple images are intentionally left as direct children of the figure.
+    # MyST interprets them as implicit subfigures while keeping the final text
+    # as one figure-level caption spanning the full figure width.
     lines = [":::{figure}"]
     if label:
         lines.append(f":label: {label}")
-    lines.append(":class: grid grid-cols-2 items-end gap-4")
     lines.append("")
     for image in images:
         lines.extend([f"![]({image})", ""])
@@ -350,7 +352,10 @@ def restore_proof_directives(text: str) -> str:
         label = match.group(2)
         body = match.group(3).strip()
         if kind == "proof":
-            lines = [":::{proof} Proof", ":enumerated: false"]
+            # Use the explicit proof kind, but no custom title argument: MyST
+            # supplies the semantic label "Proof" itself. A title argument would
+            # be displayed parenthetically, e.g. "(Proof)".
+            lines = [":::{prf:proof}", ":enumerated: false"]
         else:
             lines = [f":::{{prf:{kind}}}"]
         if label:
