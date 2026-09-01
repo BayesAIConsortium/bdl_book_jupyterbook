@@ -258,6 +258,30 @@ def extract_algorithms(text: str) -> tuple[str, list[ExtractedStructure]]:
     return pattern.sub(replace, text), structures
 
 
+def _tex_width_to_percent(options: str | None) -> int | None:
+    """Translate simple ``width=<fraction>\textwidth`` options to percentages."""
+    if not options:
+        return None
+    match = re.search(r"\bwidth\s*=\s*([0-9]*\.?[0-9]+)\\textwidth\b", options)
+    if not match:
+        return None
+    fraction = float(match.group(1))
+    if fraction <= 0:
+        return None
+    return max(1, min(100, round(100 * fraction)))
+
+
+def _figure_images(body: str) -> list[tuple[str, int | None]]:
+    """Return figure image paths with any simple TeX width converted to percent."""
+    pattern = re.compile(
+        r"\\includegraphics(?:\[([^\]]*)\])?\{([^{}]+)\}",
+    )
+    return [
+        (match.group(2), _tex_width_to_percent(match.group(1)))
+        for match in pattern.finditer(body)
+    ]
+
+
 def figure_to_myst(body: str) -> str:
     """Convert a TeX figure environment to a native MyST figure/subfigure block."""
     label_match = re.search(r"\\label\{([^{}]+)\}", body)
@@ -269,33 +293,36 @@ def figure_to_myst(body: str) -> str:
             raw_caption, _ = parse_braced(body, brace)
             caption = _clean_inline_tex(raw_caption)
 
-    images = re.findall(
-        r"\\includegraphics(?:\[[^\]]*\])?\{([^{}]+)\}",
-        body,
-    )
+    images = _figure_images(body)
     if not images:
         return ""
 
     label = label_match.group(1).strip() if label_match else None
     if len(images) == 1:
-        lines = [f":::{{figure}} {images[0]}"]
+        image, width = images[0]
+        lines = [f":::{{figure}} {image}"]
         if label:
             lines.append(f":label: {label}")
         lines.append(":align: center")
+        if width:
+            lines.append(f":width: {width}%")
         if caption:
             lines.extend(["", caption])
         lines.append(":::")
         return "\n".join(lines)
 
-    # Multiple images are intentionally left as direct children of the figure.
-    # MyST interprets them as implicit subfigures while keeping the final text
-    # as one figure-level caption spanning the full figure width.
+    # For multi-panel figures, preserve the author's TeX width intent on each
+    # image rather than allowing the web theme to enlarge every panel to fill
+    # the available figure width. The enclosing caption remains full-width.
     lines = [":::{figure}"]
     if label:
         lines.append(f":label: {label}")
     lines.append("")
-    for image in images:
-        lines.extend([f"![]({image})", ""])
+    for image, width in images:
+        if width:
+            lines.extend([f"```{{image}} {image}", f":width: {width}%", "```", ""])
+        else:
+            lines.extend([f"![]({image})", ""])
     if caption:
         lines.append(caption)
     lines.append(":::")
@@ -352,9 +379,6 @@ def restore_proof_directives(text: str) -> str:
         label = match.group(2)
         body = match.group(3).strip()
         if kind == "proof":
-            # Use the explicit proof kind, but no custom title argument: MyST
-            # supplies the semantic label "Proof" itself. A title argument would
-            # be displayed parenthetically, e.g. "(Proof)".
             lines = [":::{prf:proof}", ":enumerated: false"]
         else:
             lines = [f":::{{prf:{kind}}}"]
