@@ -88,8 +88,15 @@ def normalize_notation(text: str) -> str:
 
 
 def strip_tex_comments(text: str) -> str:
-    """Remove ordinary TeX comments while retaining escaped percent signs."""
-    return re.sub(r"(?<!\\)%.*$", "", text, flags=re.MULTILINE)
+    """Remove TeX comments without introducing artificial paragraph breaks.
+
+    A TeX percent comment consumes the remainder of its physical line, including
+    the end-of-line token. Removing only the comment text leaves runs of blank
+    lines behind, which a Markdown converter can incorrectly interpret as new
+    paragraphs. Consume the commented newline as TeX does; any genuine blank
+    lines already present in the source remain untouched.
+    """
+    return re.sub(r"(?<!\\)%[^\n]*(?:\n|$)", "", text)
 
 
 def normalize_typography(text: str) -> str:
