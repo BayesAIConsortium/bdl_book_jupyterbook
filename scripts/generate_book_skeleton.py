@@ -134,7 +134,7 @@ def parse_book_structure() -> tuple[Part, ...]:
                 number=index,
                 title=clean_title(match.group(1)),
                 label=label,
-                output=CONTENT_ROOT / "parts" / f"{slug}.md",
+                output=CONTENT_ROOT / slug / "index.md",
                 chapters=chapters,
             )
         )
