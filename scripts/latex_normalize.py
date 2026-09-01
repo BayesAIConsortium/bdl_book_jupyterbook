@@ -62,8 +62,24 @@ TYPOGRAPHIC_COMMANDS: tuple[str, ...] = (
 )
 
 
+def normalize_indicator(text: str) -> str:
+    """Expand the book's indicator-function macro to standard LaTeX.
+
+    The authoritative TeX macro is ``\Ind[o] = \mathds 1(o)``. MyST/KaTeX does
+    not know that book-specific command, so retain the same round-bracket
+    semantics using a standard blackboard-bold 1.
+    """
+    text = re.sub(
+        r"\\Ind\[([^\]]+)\]",
+        lambda match: rf"\mathbb{{1}}\left({match.group(1)}\right)",
+        text,
+    )
+    return re.sub(r"\\Ind\b", r"\\mathbb{1}", text)
+
+
 def normalize_notation(text: str) -> str:
     """Expand the conservative subset of global book notation macros."""
+    text = normalize_indicator(text)
     for source, replacement in COMPOUND_REPLACEMENTS:
         text = text.replace(source, replacement)
     for source, replacement in SIMPLE_MATH_REPLACEMENTS:
