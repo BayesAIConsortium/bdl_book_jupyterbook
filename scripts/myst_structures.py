@@ -75,7 +75,8 @@ def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
     MyST's LaTeX converter can resolve many references directly, but section
     numbers are not necessarily enumerated in the web theme and can surface as
     ``??``. Equation references also lose the word ``Equation`` in some contexts.
-    Preserve those semantics explicitly while retaining native MyST targets.
+    Protect chapter references as native MyST links as well, so their targets
+    remain stable while placeholder chapters are replaced by migrated content.
     """
     structures: list[ExtractedStructure] = []
     section_titles = _section_label_titles(text)
@@ -102,11 +103,27 @@ def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
         ),
         text,
     )
+    text = re.sub(
+        r"\b(Chapter|Chapters)\s*~?\s*\\ref\{([^{}]+)\}",
+        lambda m: placeholder(f"{m.group(1)} [](#{m.group(2)})"),
+        text,
+    )
     return text, structures
 
 
 def _clean_algorithm_fragment(text: str) -> str:
+    """Normalize one algorithm2e text fragment to MyST-friendly Markdown."""
     text = normalize_notation(text)
+    text = re.sub(
+        r"\\eqref\{([^{}]+)\}",
+        lambda match: f"Equation [](#${match.group(1)})".replace("#$", "#"),
+        text,
+    )
+    text = re.sub(
+        r"\\ref\{([^{}]+)\}",
+        lambda match: f"[](#${match.group(1)})".replace("#$", "#"),
+        text,
+    )
     text = text.replace(r"\KwTo", " to ")
     text = text.replace(r"\;", "")
     return re.sub(r"\s+", " ", text).strip()
@@ -332,8 +349,10 @@ def restore_proof_directives(text: str) -> str:
         kind = match.group(1)
         label = match.group(2)
         body = match.group(3).strip()
-        directive = "proof" if kind == "proof" else f"prf:{kind}"
-        lines = [f":::{{{directive}}}"]
+        if kind == "proof":
+            lines = [":::{proof} Proof", ":enumerated: false"]
+        else:
+            lines = [f":::{{prf:{kind}}}"]
         if label:
             lines.append(f":label: {label}")
         lines.append("")
