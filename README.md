@@ -19,6 +19,18 @@ uv run myst --version
 
 No separate Node/npm setup is required for the proof, theorem, definition, example, proposition, or algorithm directives used by the migrated book. The current Jupyter Book / MyST stack already provides the proof extension and its `prf:*` directives. In particular, do not run `npm install` for this repository solely to enable proofs, and do not commit `node_modules/` or an accidental `package-lock.json` created while experimenting with that approach.
 
+## MyST project root and URLs
+
+The MyST project root is `content/`, with its configuration in `content/myst.yml`. Keeping the project root there means the public URL hierarchy mirrors the book structure without an extra `/content/` prefix. With `folders: true`, for example:
+
+```text
+content/sampling_methods/index.md  -> /sampling-methods/
+content/sampling_methods/intro.md  -> /sampling-methods/intro/
+content/laplace_approximations/intro.md -> /laplace-approximations/intro/
+```
+
+The central bibliography remains at the repository root as `references.bib` and is referenced from `content/myst.yml` as `../references.bib`.
+
 ## Conversion workflow
 
 The TeX repository remains authoritative during the migration. By default, the conversion scripts read it from `../bdl_book_tex_fork`. Override that location with `BDL_TEX_ROOT` when needed.
@@ -40,15 +52,23 @@ bash scripts/run_part1_conversions.sh
 
 ## Pull changes and preview locally
 
-Update the local repository, synchronize the environment, regenerate the migrated Markdown content, and start the local preview server:
+Update the local repository, synchronize the environment, regenerate the migrated Markdown content, and start the local preview server from the MyST project root:
 
 ```bash
 git pull
 uv sync --extra dev
 bash scripts/run_conversions.sh
+cd content
 uv run jupyter book start
 ```
 
 When dependencies in `pyproject.toml` change, run `uv sync --extra dev` again.
+
+For a production HTML build, run from the repository root:
+
+```bash
+cd content
+uv run jupyter book build --html
+```
 
 The repository is intentionally book-first rather than a reusable Python package. TeX-to-MyST migration helpers live under `scripts/`.
