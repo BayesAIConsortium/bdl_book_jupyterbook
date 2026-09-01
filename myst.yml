@@ -98,3 +98,4 @@ site:
   template: book-theme
   options:
     logo_text: Handbook of Bayesian Deep Learning
+    folders: true
