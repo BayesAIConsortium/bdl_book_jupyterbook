@@ -69,9 +69,38 @@ def command_argument(text: str, command: str, start: int = 0) -> tuple[str, int,
     return value, command_start, end
 
 
-def convert_part_ref(label: str) -> str:
+def to_roman(number: int) -> str:
+    """Return a positive integer as an uppercase Roman numeral."""
+    numerals = (
+        (1000, "M"),
+        (900, "CM"),
+        (500, "D"),
+        (400, "CD"),
+        (100, "C"),
+        (90, "XC"),
+        (50, "L"),
+        (40, "XL"),
+        (10, "X"),
+        (9, "IX"),
+        (5, "V"),
+        (4, "IV"),
+        (1, "I"),
+    )
+    if number < 1:
+        raise ValueError("Roman numerals require a positive integer")
+
+    result: list[str] = []
+    remainder = number
+    for value, numeral in numerals:
+        while remainder >= value:
+            result.append(numeral)
+            remainder -= value
+    return "".join(result)
+
+
+def convert_part_ref(label: str, prefix: str = "Part") -> str:
     number = PART_NUMBERS.get(label)
-    text = f"Part {number}" if number is not None else "Part"
+    text = f"{prefix} {to_roman(number)}" if number is not None else prefix
     return f"[{text}](#{label})"
 
 
@@ -85,7 +114,7 @@ def convert_bare_ref(label: str) -> str:
     if label in CHAPTER_NUMBERS:
         return f"[{CHAPTER_NUMBERS[label]}](#{label})"
     if label in PART_NUMBERS:
-        return f"[{PART_NUMBERS[label]}](#{label})"
+        return f"[{to_roman(PART_NUMBERS[label])}](#{label})"
     if label in TABLE_NUMBERS:
         return f"[{TABLE_NUMBERS[label]}](#{label})"
     if label in FIGURE_NUMBERS:
@@ -97,7 +126,9 @@ def convert_references(text: str) -> str:
     """Translate Reader's Guide cross-references using scaffold numbering."""
     text = re.sub(
         r"Parts~\\ref\{(part:[^{}]+)\}--\\ref\{(part:[^{}]+)\}",
-        lambda m: f"{convert_part_ref(m.group(1))}–{convert_part_ref(m.group(2))}",
+        lambda m: (
+            f"{convert_part_ref(m.group(1), 'Parts')}–{convert_bare_ref(m.group(2))}"
+        ),
         text,
     )
     text = re.sub(
@@ -147,10 +178,12 @@ def clean_inline(text: str) -> str:
     text = text.replace("--", "–")
     text = normalize_notation(text)
     text = convert_references(text)
+    text = re.sub(r"``(.*?)''", r"“\1”", text, flags=re.DOTALL)
     text = re.sub(r"\\textit\{([^{}]*)\}", r"*\1*", text)
     text = re.sub(r"\\textbf\{([^{}]*)\}", r"**\1**", text)
     text = text.replace(r"\noindent", "")
     text = text.replace(r"\small", "")
+    text = text.replace("~", " ")
     text = re.sub(r"\s+", " ", text).strip()
     text = re.sub(r"\s+([,.;:!?])", r"\1", text)
     return text
@@ -241,10 +274,9 @@ def render_table(table_env: str) -> str:
 
     caption = clean_inline(caption_info[0])
     label = label_match.group(1)
-    number = TABLE_NUMBERS[label]
     rows = split_table_rows(tabular_match.group(1))
 
-    output = [f":::{{table}} Table {number}. {caption}", f":label: {label}", ""]
+    output = [f":::{{table}} {caption}", f":label: {label}", ""]
     header_written = False
     for row in rows:
         multicolumn = re.search(r"\\multicolumn\{4\}\{.*?\}\{(.*)\}\s*$", row, re.DOTALL)
