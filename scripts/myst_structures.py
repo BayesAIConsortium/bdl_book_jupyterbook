@@ -169,7 +169,13 @@ def algorithm_to_myst(body: str) -> str:
 
 
 def extract_algorithms(text: str) -> tuple[str, list[ExtractedStructure]]:
-    """Replace algorithm2e environments with placeholders and return MyST versions."""
+    """Replace active algorithm2e environments with placeholders and MyST versions.
+
+    Strip TeX comments before semantic extraction so legacy environments that
+    are fully commented out cannot be mistaken for active algorithms. This also
+    ensures later theorem/proof extraction sees the same active source only.
+    """
+    text = strip_tex_comments(text)
     structures: list[ExtractedStructure] = []
     pattern = re.compile(
         r"\\begin\{algorithm\}(?:\[[^\]]*\])?(.*?)\\end\{algorithm\}",
