@@ -238,6 +238,13 @@ def _algorithm_sequence(text: str, indent: int = 0) -> list[str]:
             lines.append(f"{prefix}*Note:* {_clean_algorithm_fragment(arg)}")
             continue
 
+        if text.startswith(r"\Repeat", pos):
+            condition, next_pos = parse_braced(text, pos + len(r"\Repeat"))
+            body, pos = parse_braced(text, next_pos)
+            lines.append(f"{prefix}1. **Repeat until** {_clean_algorithm_fragment(condition)}:")
+            lines.extend(_algorithm_sequence(body, indent + 1))
+            continue
+
         for command, label in ((r"\For", "For"), (r"\While", "While"), (r"\If", "If")):
             if text.startswith(command, pos):
                 condition, next_pos = parse_braced(text, pos + len(command))
