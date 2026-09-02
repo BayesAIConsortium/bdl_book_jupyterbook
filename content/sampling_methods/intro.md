@@ -678,29 +678,29 @@ These are the ingredients of the *sequential importance sampling* (SIS) algorith
 1. **For** $i = 1$ to $M$:
     1. initialize weights $w_1^{(i)} \gets 1 / M$
 1. $n \gets 1$
-1. \Repeat{termination criterion met}{ \For{$i = 1$ to $M$}{ sample $\theta_n^{(i)} \sim q_n(\theta_n \mid \theta_{1:n-1}^{(i)})$
-1. update unnormalized weight
-$$
+1. **Repeat until** termination criterion met:
+    1. **For** $i = 1$ to $M$:
+        1. sample $\theta_n^{(i)} \sim q_n(\theta_n \mid \theta_{1:n-1}^{(i)})$
+        1. update unnormalized weight
+        $$
 w_{n}(\theta_{1:n}^{(i)}) \gets
         \alpha_n(\theta_{n}^{(i)} \mid \theta_{1:n-1}^{(i)})\,
         w_{n-1}(\theta_{1:n-1}^{(i)})
-$$
-1. normalize weight
-$$
+        $$
+        1. normalize weight
+        $$
 W_n^{(i)} \gets
         \frac{w_n(\theta_{1:n}^{(i)})}
              {\sum_{j=1}^M w_n(\theta_{1:n}^{(j)})}
-$$
-1. }
-1. compute estimates
-$$
+        $$
+    1. compute estimates
+    $$
 \widehat{\theta}_n \gets
       \sum_{i=1}^M W_n^{(i)} \theta_{n}^{(i)}, \qquad
       \widehat{Z}_n \gets
       \tfrac{1}{M} \sum_{i=1}^M w_n(\theta_{1:n}^{(i)})
-$$
-1. $n \gets n + 1$
-1. }
+    $$
+    1. $n \gets n + 1$
 :::
 
 As {math}`n` grows the weights will degenerate, in the sense that one will dominate the rest. This can be monitored by the effective sample size, which is related to the variance of the weights:
@@ -736,44 +736,44 @@ W_1^{(i)} \gets \frac{w_1(\theta_1^{(i)})}{\sum_{j=1}^{M} w_1(\theta_1^{(j)})}
 $$
 *Note:* Iterate for subsequent times
 1. $n \gets 1$
-1. \Repeat{termination criterion met}{ \tcp{Effective sample size at time $n$}
-$$
+1. **Repeat until** termination criterion met:
+    *Note:* Effective sample size at time $n$
+    $$
 ESS_n \gets \left(\sum_{i=1}^{M} \left(W_n^{(i)}\right)^2\right)^{-1}
-$$
-*Note:* Optional resampling at time $n$
-1. **If** $ESS_n \le M/2$:
-    *Note:* Multinomial resampling with probabilities $W_n^{(1:M)}$
-    1. **For** $i=1$ to $M$:
-        1. draw $j \sim \mathrm{Categorical}\left(W_n^{(1)},\dots,W_n^{(M)}\right)$
-        1. $\theta_{1:n}^{(i)} \gets \theta_{1:n}^{(j)}$
-        1. $w_n^{(i)} \gets 1/M$
     $$
+    *Note:* Optional resampling at time $n$
+    1. **If** $ESS_n \le M/2$:
+        *Note:* Multinomial resampling with probabilities $W_n^{(1:M)}$
+        1. **For** $i=1$ to $M$:
+            1. draw $j \sim \mathrm{Categorical}\left(W_n^{(1)},\dots,W_n^{(M)}\right)$
+            1. $\theta_{1:n}^{(i)} \gets \theta_{1:n}^{(j)}$
+            1. $w_n^{(i)} \gets 1/M$
+        $$
 \widehat{Z} \gets \left(\frac{1}{M}\sum_{i=1}^{M} w_n(\theta_{1:n}^{(i)})\right)\widehat{Z}
-    $$
-*Note:* Advance to time $n+1$
-1. $n \gets n+1$
-1. **For** $i=1$ to $M$:
-    1. sample $\theta_{n}^{(i)} \sim q_{n}(\theta_{n}\mid \theta_{1:n-1}^{(i)})$
-    1. update unnormalized weight
-    $$
+        $$
+    *Note:* Advance to time $n+1$
+    1. $n \gets n+1$
+    1. **For** $i=1$ to $M$:
+        1. sample $\theta_{n}^{(i)} \sim q_{n}(\theta_{n}\mid \theta_{1:n-1}^{(i)})$
+        1. update unnormalized weight
+        $$
 w_{n}(\theta_{1:n}^{(i)}) \gets
         \alpha_{n}(\theta_{n}^{(i)}\mid \theta_{1:n-1}^{(i)})
         w_{n-1}(\theta_{1:n-1}^{(i)})
+        $$
     $$
-$$
 W_{n}^{(i)} \gets
       \frac{w_{n}(\theta_{1:n}^{(i)})}{\sum_{j=1}^{M} w_{n}(\theta_{1:n}^{(j)})}
       \quad\text{for } i=1,\dots,M
-$$
-*Note:* Estimates at time $n$
-$$
+    $$
+    *Note:* Estimates at time $n$
+    $$
 \widehat{\theta}_{n} \gets
       \sum_{i=1}^{M} W_{n}^{(i)}\,\theta_{n}^{(i)},
       \qquad
       \widehat{Z}_{n} \gets
       \frac{1}{M}\sum_{i=1}^{M} w_{n}(\theta_{1:n}^{(i)})\,\widehat{Z}
-$$
-1. }
+    $$
 :::
 
 +++
