@@ -668,11 +668,9 @@ W_n^{(i)} = \frac{w_n(\theta_{1:n}^{(i)})}{\sum_{i=1}^M w_n(\theta_{1:n}^{(i)})}
 
 These are the ingredients of the *sequential importance sampling* (SIS) algorithm, given in Algorithm [%s](#alg:SIS). In Algorithms [%s](#alg:SIS) and [%s](#alg:SMC) we take {math}`h_n(\theta_{1:n}) = \theta_n`.
 
-:::{prf:algorithm} Algorithm
+:::{prf:algorithm} Sequential Importance Sampling (SIS) to estimate $\mathbb{E}_n(\theta_n)$ for $n \geq 1$
 :label: alg:SIS
 
-1. \caption{Sequential Importance Sampling (SIS) to estimate
-1. $\mathbb{E}_n(\theta_n)$ for $n \geq 1$}
 - **Inputs:** number of particles $M$, proposal distributions $q_n$, adjustment multipliers $\alpha_n$
 - **Output:** estimates $\widehat{\theta}_n$ and $\widehat{Z}_n$ for $n \geq 1$
 1. **For** $i = 1$ to $M$:
@@ -718,10 +716,9 @@ One way to mitigate this somewhat is by resampling, i.e. for {math}`i=1,\dots,M`
 
 Resampling slightly increases the variance of the estimator, but the particles are rejuvenated at the filtering end, and under suitable conditions the filter can even remain stable online for infinite time {cite:p}`del2004feynman`. Note that this branching of the particles forward in time means coalescence backward in time, so the particles still degenerate for small times, which is problematic for the smoother. SIS along with resampling is called sequential importance resampling (SIR) or sequential Monte Carlo (SMC). See Algorithm [%s](#alg:SMC). In the context of a state space model, {math}`q_n` is often chosen as the forward evolution kernel of the hidden process, and in the filtering context this specific choice is often called the *bootstrap particle filter*. In practice, one resamples when the ESS is less than a threshold (e.g. {math}`M/2` or {math}`M/4`). See {cite:t}`chopin2020introduction` for a recent comprehensive introduction.
 
-:::{prf:algorithm} Algorithm
+:::{prf:algorithm} Sequential Monte Carlo (SMC) to estimate $\mathbb{E}(\theta_n)$ for $n \ge 1$
 :label: alg:SMC
 
-1. \caption{Sequential Monte Carlo (SMC) to estimate $\mathbb{E}(\theta_n)$ for $n \ge 1$}
 - **Inputs:** number of particles $M$, proposals $q_n$, adjustment multipliers $\alpha_n$
 - **Output:** estimates $\widehat{\theta}_n$ and $\widehat{Z}_n$ for $n \ge 1$
 *Note:* Initialization at $n=1$
