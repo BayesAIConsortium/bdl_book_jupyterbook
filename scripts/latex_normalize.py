@@ -46,6 +46,8 @@ SIMPLE_MATH_REPLACEMENTS: tuple[tuple[str, str], ...] = (
     (r"\regularizer", r"\Omega"),
     (r"\Reals", r"\mathbb{R}"),
     (r"\Nats", r"\mathbb{N}"),
+    (r"\N", r"\mathcal{N}"),
+    (r"\transpose", r"^{\top}"),
     (r"\params", r"\theta"),
     (r"\inputs", "x"),
     (r"\targets", "y"),
@@ -77,9 +79,64 @@ def normalize_indicator(text: str) -> str:
     return re.sub(r"\\Ind\b", r"\\mathbb{1}", text)
 
 
+def normalize_expectation(text: str) -> str:
+    r"""Expand the book's ``\E`` macro, including its optional arguments."""
+    text = re.sub(
+        r"\\E\[([^\]]+)\]\[([^\]]+)\]",
+        lambda match: (
+            rf"\mathbb{{E}}_{{{match.group(1)}}}\left[{match.group(2)}\right]"
+        ),
+        text,
+    )
+    text = re.sub(
+        r"\\E\[([^\]]+)\]",
+        lambda match: rf"\mathbb{{E}}\left[{match.group(1)}\right]",
+        text,
+    )
+    return re.sub(r"\\E\b", r"\\mathbb{E}", text)
+
+
+def _roman_numeral(number: int) -> str:
+    """Return a lowercase Roman numeral for a positive integer."""
+    if number <= 0:
+        return str(number)
+    values = (
+        (1000, "m"),
+        (900, "cm"),
+        (500, "d"),
+        (400, "cd"),
+        (100, "c"),
+        (90, "xc"),
+        (50, "l"),
+        (40, "xl"),
+        (10, "x"),
+        (9, "ix"),
+        (5, "v"),
+        (4, "iv"),
+        (1, "i"),
+    )
+    pieces: list[str] = []
+    remainder = number
+    for value, numeral in values:
+        count, remainder = divmod(remainder, value)
+        pieces.append(numeral * count)
+    return "".join(pieces)
+
+
+def normalize_roman_numerals(text: str) -> str:
+    r"""Replace TeX ``\romannumeral<number>`` with literal lowercase numerals."""
+    return re.sub(
+        r"\\romannumeral\s*(\d+)",
+        lambda match: _roman_numeral(int(match.group(1))),
+        text,
+    )
+
+
 def normalize_notation(text: str) -> str:
     """Expand the conservative subset of global book notation macros."""
     text = normalize_indicator(text)
+    text = normalize_expectation(text)
+    text = normalize_roman_numerals(text)
     for source, replacement in COMPOUND_REPLACEMENTS:
         text = text.replace(source, replacement)
     for source, replacement in SIMPLE_MATH_REPLACEMENTS:
