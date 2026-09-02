@@ -283,14 +283,25 @@ def _algorithm_sequence(text: str, indent: int = 0) -> list[str]:
     return lines
 
 
+def _extract_balanced_command(text: str, command: str) -> tuple[str | None, str]:
+    """Extract and remove the first balanced braced argument of a TeX command."""
+    command_pos = text.find(command)
+    if command_pos < 0:
+        return None, text
+    brace = text.find("{", command_pos + len(command))
+    if brace < 0:
+        return None, text
+    argument, end = parse_braced(text, brace)
+    return argument, text[:command_pos] + text[end:]
+
+
 def algorithm_to_myst(body: str) -> str:
     """Convert one algorithm2e environment body to MyST's native algorithm proof directive."""
-    caption_match = re.search(r"\\caption\{([^{}]+)\}", body)
+    raw_caption, body = _extract_balanced_command(body, r"\caption")
     label_match = re.search(r"\\label\{([^{}]+)\}", body)
-    caption = _clean_inline_tex(caption_match.group(1)) if caption_match else "Algorithm"
+    caption = _clean_inline_tex(raw_caption) if raw_caption is not None else "Algorithm"
     label = label_match.group(1).strip() if label_match else None
 
-    body = re.sub(r"\\caption\{[^{}]+\}\s*", "", body, count=1)
     body = re.sub(r"\\label\{[^{}]+\}\s*", "", body, count=1)
     body = re.sub(
         r"^\s*\\SetKwInOut\{[^{}]+\}\{[^{}]+\}\s*$",
