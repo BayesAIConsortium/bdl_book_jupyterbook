@@ -60,6 +60,19 @@ def test_algorithm2e_repeat_loop_is_converted_recursively() -> None:
     assert r"\tcp" not in converted
 
 
+def test_algorithm_caption_supports_nested_tex_braces() -> None:
+    source = r"""
+\caption{Sequential Monte Carlo to estimate $\mathbb{E}(\theta_n)$}
+\label{alg:smc}
+$x \gets 1$\;
+"""
+    converted = algorithm_to_myst(source)
+    assert converted.startswith(
+        r":::{prf:algorithm} Sequential Monte Carlo to estimate $\mathbb{E}(\theta_n)$"
+    )
+    assert r"\caption" not in converted
+
+
 def test_figure_width_accepts_linewidth() -> None:
     source = r"""
 \centering
