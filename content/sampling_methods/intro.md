@@ -668,39 +668,37 @@ W_n^{(i)} = \frac{w_n(\theta_{1:n}^{(i)})}{\sum_{i=1}^M w_n(\theta_{1:n}^{(i)})}
 
 These are the ingredients of the *sequential importance sampling* (SIS) algorithm, given in Algorithm [%s](#alg:SIS). In Algorithms [%s](#alg:SIS) and [%s](#alg:SMC) we take {math}`h_n(\theta_{1:n}) = \theta_n`.
 
-:::{prf:algorithm} Algorithm
+:::{prf:algorithm} Sequential Importance Sampling (SIS) to estimate $\mathbb{E}_n(\theta_n)$ for $n \geq 1$
 :label: alg:SIS
 
-1. \caption{Sequential Importance Sampling (SIS) to estimate
-1. $\mathbb{E}_n(\theta_n)$ for $n \geq 1$}
 - **Inputs:** number of particles $M$, proposal distributions $q_n$, adjustment multipliers $\alpha_n$
 - **Output:** estimates $\widehat{\theta}_n$ and $\widehat{Z}_n$ for $n \geq 1$
 1. **For** $i = 1$ to $M$:
     1. initialize weights $w_1^{(i)} \gets 1 / M$
 1. $n \gets 1$
-1. \Repeat{termination criterion met}{ \For{$i = 1$ to $M$}{ sample $\theta_n^{(i)} \sim q_n(\theta_n \mid \theta_{1:n-1}^{(i)})$
-1. update unnormalized weight
-$$
+1. **Repeat until** termination criterion met:
+    1. **For** $i = 1$ to $M$:
+        1. sample $\theta_n^{(i)} \sim q_n(\theta_n \mid \theta_{1:n-1}^{(i)})$
+        1. update unnormalized weight
+        $$
 w_{n}(\theta_{1:n}^{(i)}) \gets
         \alpha_n(\theta_{n}^{(i)} \mid \theta_{1:n-1}^{(i)})\,
         w_{n-1}(\theta_{1:n-1}^{(i)})
-$$
-1. normalize weight
-$$
+        $$
+        1. normalize weight
+        $$
 W_n^{(i)} \gets
         \frac{w_n(\theta_{1:n}^{(i)})}
              {\sum_{j=1}^M w_n(\theta_{1:n}^{(j)})}
-$$
-1. }
-1. compute estimates
-$$
+        $$
+    1. compute estimates
+    $$
 \widehat{\theta}_n \gets
       \sum_{i=1}^M W_n^{(i)} \theta_{n}^{(i)}, \qquad
       \widehat{Z}_n \gets
       \tfrac{1}{M} \sum_{i=1}^M w_n(\theta_{1:n}^{(i)})
-$$
-1. $n \gets n + 1$
-1. }
+    $$
+    1. $n \gets n + 1$
 :::
 
 As {math}`n` grows the weights will degenerate, in the sense that one will dominate the rest. This can be monitored by the effective sample size, which is related to the variance of the weights:
@@ -718,10 +716,9 @@ One way to mitigate this somewhat is by resampling, i.e. for {math}`i=1,\dots,M`
 
 Resampling slightly increases the variance of the estimator, but the particles are rejuvenated at the filtering end, and under suitable conditions the filter can even remain stable online for infinite time {cite:p}`del2004feynman`. Note that this branching of the particles forward in time means coalescence backward in time, so the particles still degenerate for small times, which is problematic for the smoother. SIS along with resampling is called sequential importance resampling (SIR) or sequential Monte Carlo (SMC). See Algorithm [%s](#alg:SMC). In the context of a state space model, {math}`q_n` is often chosen as the forward evolution kernel of the hidden process, and in the filtering context this specific choice is often called the *bootstrap particle filter*. In practice, one resamples when the ESS is less than a threshold (e.g. {math}`M/2` or {math}`M/4`). See {cite:t}`chopin2020introduction` for a recent comprehensive introduction.
 
-:::{prf:algorithm} Algorithm
+:::{prf:algorithm} Sequential Monte Carlo (SMC) to estimate $\mathbb{E}(\theta_n)$ for $n \ge 1$
 :label: alg:SMC
 
-1. \caption{Sequential Monte Carlo (SMC) to estimate $\mathbb{E}(\theta_n)$ for $n \ge 1$}
 - **Inputs:** number of particles $M$, proposals $q_n$, adjustment multipliers $\alpha_n$
 - **Output:** estimates $\widehat{\theta}_n$ and $\widehat{Z}_n$ for $n \ge 1$
 *Note:* Initialization at $n=1$
@@ -736,44 +733,44 @@ W_1^{(i)} \gets \frac{w_1(\theta_1^{(i)})}{\sum_{j=1}^{M} w_1(\theta_1^{(j)})}
 $$
 *Note:* Iterate for subsequent times
 1. $n \gets 1$
-1. \Repeat{termination criterion met}{ \tcp{Effective sample size at time $n$}
-$$
+1. **Repeat until** termination criterion met:
+    *Note:* Effective sample size at time $n$
+    $$
 ESS_n \gets \left(\sum_{i=1}^{M} \left(W_n^{(i)}\right)^2\right)^{-1}
-$$
-*Note:* Optional resampling at time $n$
-1. **If** $ESS_n \le M/2$:
-    *Note:* Multinomial resampling with probabilities $W_n^{(1:M)}$
-    1. **For** $i=1$ to $M$:
-        1. draw $j \sim \mathrm{Categorical}\left(W_n^{(1)},\dots,W_n^{(M)}\right)$
-        1. $\theta_{1:n}^{(i)} \gets \theta_{1:n}^{(j)}$
-        1. $w_n^{(i)} \gets 1/M$
     $$
+    *Note:* Optional resampling at time $n$
+    1. **If** $ESS_n \le M/2$:
+        *Note:* Multinomial resampling with probabilities $W_n^{(1:M)}$
+        1. **For** $i=1$ to $M$:
+            1. draw $j \sim \mathrm{Categorical}\left(W_n^{(1)},\dots,W_n^{(M)}\right)$
+            1. $\theta_{1:n}^{(i)} \gets \theta_{1:n}^{(j)}$
+            1. $w_n^{(i)} \gets 1/M$
+        $$
 \widehat{Z} \gets \left(\frac{1}{M}\sum_{i=1}^{M} w_n(\theta_{1:n}^{(i)})\right)\widehat{Z}
-    $$
-*Note:* Advance to time $n+1$
-1. $n \gets n+1$
-1. **For** $i=1$ to $M$:
-    1. sample $\theta_{n}^{(i)} \sim q_{n}(\theta_{n}\mid \theta_{1:n-1}^{(i)})$
-    1. update unnormalized weight
-    $$
+        $$
+    *Note:* Advance to time $n+1$
+    1. $n \gets n+1$
+    1. **For** $i=1$ to $M$:
+        1. sample $\theta_{n}^{(i)} \sim q_{n}(\theta_{n}\mid \theta_{1:n-1}^{(i)})$
+        1. update unnormalized weight
+        $$
 w_{n}(\theta_{1:n}^{(i)}) \gets
         \alpha_{n}(\theta_{n}^{(i)}\mid \theta_{1:n-1}^{(i)})
         w_{n-1}(\theta_{1:n-1}^{(i)})
+        $$
     $$
-$$
 W_{n}^{(i)} \gets
       \frac{w_{n}(\theta_{1:n}^{(i)})}{\sum_{j=1}^{M} w_{n}(\theta_{1:n}^{(j)})}
       \quad\text{for } i=1,\dots,M
-$$
-*Note:* Estimates at time $n$
-$$
+    $$
+    *Note:* Estimates at time $n$
+    $$
 \widehat{\theta}_{n} \gets
       \sum_{i=1}^{M} W_{n}^{(i)}\,\theta_{n}^{(i)},
       \qquad
       \widehat{Z}_{n} \gets
       \frac{1}{M}\sum_{i=1}^{M} w_{n}(\theta_{1:n}^{(i)})\,\widehat{Z}
-$$
-1. }
+    $$
 :::
 
 +++
