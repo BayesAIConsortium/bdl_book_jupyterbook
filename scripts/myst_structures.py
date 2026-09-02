@@ -45,9 +45,37 @@ def parse_braced(text: str, start: int) -> tuple[str, int]:
     raise ValueError("Unclosed brace group")
 
 
+def _citation_keys(raw: str) -> list[str]:
+    """Return cleaned citation keys from a comma-separated TeX citation argument."""
+    return [key.strip() for key in raw.split(",") if key.strip()]
+
+
+def _parenthetical_citation(raw: str) -> str:
+    """Convert citation keys to MyST/Pandoc-style parenthetical citation syntax."""
+    return "[" + "; ".join(f"@{key}" for key in _citation_keys(raw)) + "]"
+
+
+def _textual_citation(raw: str) -> str:
+    """Convert citation keys to textual MyST citation syntax where possible."""
+    keys = _citation_keys(raw)
+    if len(keys) == 1:
+        return f"@{keys[0]}"
+    return "[" + "; ".join(f"@{key}" for key in keys) + "]"
+
+
 def _clean_inline_tex(text: str) -> str:
     """Convert the conservative inline TeX subset used in extracted captions."""
     text = normalize_notation(text)
+    text = re.sub(
+        r"\\(?:cite|citep)\{([^{}]+)\}",
+        lambda match: _parenthetical_citation(match.group(1)),
+        text,
+    )
+    text = re.sub(
+        r"\\citet\{([^{}]+)\}",
+        lambda match: _textual_citation(match.group(1)),
+        text,
+    )
     text = re.sub(r"\\(?:emph|textit)\{([^{}]*)\}", r"*\1*", text)
     text = re.sub(r"\\textbf\{([^{}]*)\}", r"**\1**", text)
     text = text.replace(r"\&", "&")
@@ -111,8 +139,41 @@ def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
     return text, structures
 
 
+def _parse_algorithm_comment(text: str, pos: int) -> tuple[str, int]:
+    """Parse algorithm2e ``\tcp`` including optional star/alignment modifiers."""
+    cursor = pos + len(r"\tcp")
+    if cursor < len(text) and text[cursor] == "*":
+        cursor += 1
+    while cursor < len(text) and text[cursor].isspace():
+        cursor += 1
+    if cursor < len(text) and text[cursor] == "[":
+        option_end = text.find("]", cursor + 1)
+        if option_end < 0:
+            raise ValueError("Unclosed optional argument for \\tcp")
+        cursor = option_end + 1
+    comment, cursor = parse_braced(text, cursor)
+    return comment, cursor
+
+
+def _replace_inline_algorithm_comments(text: str) -> str:
+    """Turn inline algorithm2e comments into readable Markdown annotations."""
+    pieces: list[str] = []
+    pos = 0
+    while True:
+        comment_pos = text.find(r"\tcp", pos)
+        if comment_pos < 0:
+            pieces.append(text[pos:])
+            break
+        pieces.append(text[pos:comment_pos])
+        comment, end = _parse_algorithm_comment(text, comment_pos)
+        pieces.append(f" — *Note:* {comment}")
+        pos = end
+    return "".join(pieces)
+
+
 def _clean_algorithm_fragment(text: str) -> str:
     """Normalize one algorithm2e text fragment to MyST-friendly Markdown."""
+    text = _replace_inline_algorithm_comments(text)
     text = normalize_notation(text)
     text = re.sub(
         r"\\eqref\{([^{}]+)\}",
@@ -173,7 +234,7 @@ def _algorithm_sequence(text: str, indent: int = 0) -> list[str]:
             continue
 
         if text.startswith(r"\tcp", pos):
-            arg, pos = parse_braced(text, pos + len(r"\tcp"))
+            arg, pos = _parse_algorithm_comment(text, pos)
             lines.append(f"{prefix}*Note:* {_clean_algorithm_fragment(arg)}")
             continue
 
@@ -259,10 +320,13 @@ def extract_algorithms(text: str) -> tuple[str, list[ExtractedStructure]]:
 
 
 def _tex_width_to_percent(options: str | None) -> int | None:
-    """Translate simple ``width=<fraction>\textwidth`` options to percentages."""
+    r"""Translate simple ``width=<fraction>\textwidth``/``\linewidth`` to percentages."""
     if not options:
         return None
-    match = re.search(r"\bwidth\s*=\s*([0-9]*\.?[0-9]+)\\textwidth\b", options)
+    match = re.search(
+        r"\bwidth\s*=\s*([0-9]*\.?[0-9]+)\\(?:textwidth|linewidth)\b",
+        options,
+    )
     if not match:
         return None
     fraction = float(match.group(1))
@@ -272,7 +336,7 @@ def _tex_width_to_percent(options: str | None) -> int | None:
 
 
 def _figure_images(body: str) -> list[tuple[str, int | None]]:
-    """Return figure image paths with any simple TeX width converted to percent."""
+    """Return figure image paths with simple TeX widths converted to percent."""
     pattern = re.compile(
         r"\\includegraphics(?:\[([^\]]*)\])?\{([^{}]+)\}",
     )
@@ -311,9 +375,6 @@ def figure_to_myst(body: str) -> str:
         lines.append(":::")
         return "\n".join(lines)
 
-    # For multi-panel figures, preserve the author's TeX width intent on each
-    # image rather than allowing the web theme to enlarge every panel to fill
-    # the available figure width. The enclosing caption remains full-width.
     lines = [":::{figure}"]
     if label:
         lines.append(f":label: {label}")
