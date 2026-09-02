@@ -44,6 +44,22 @@ $x \gets 1$ \tcp*[r]{Compute value}
     assert r"\tcp" not in converted
 
 
+def test_algorithm2e_repeat_loop_is_converted_recursively() -> None:
+    source = r"""
+\caption{Repeat example}
+\label{alg:repeat}
+\Repeat{termination criterion met}{
+  \tcp{Effective sample size}
+  $n \gets n+1$\;
+}
+"""
+    converted = algorithm_to_myst(source)
+    assert "**Repeat until** termination criterion met:" in converted
+    assert "*Note:* Effective sample size" in converted
+    assert r"\Repeat" not in converted
+    assert r"\tcp" not in converted
+
+
 def test_figure_width_accepts_linewidth() -> None:
     source = r"""
 \centering
