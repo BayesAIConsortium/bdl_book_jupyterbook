@@ -17,11 +17,11 @@ from myst_structures import (
     ExtractedStructure,
     extract_algorithms,
     extract_figures,
-    extract_references,
     mark_proof_environments,
     normalize_headings_for_latex_pass,
     restore_extracted_structures,
 )
+from semantic_references import extract_references
 
 
 MYST_TIMEOUT_SECONDS = 60

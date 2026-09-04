@@ -25,7 +25,7 @@ p(\theta\mid\mathcal{D}) \approx \frac{1}{M}\sum_{s=1}^{M}\delta(\theta-\theta_s
 where {math}`\delta(\cdot)` is the Dirac delta function (also known as the unit impulse) {cite:p}`jeffrey1990linear`. At inference time, the sample set is used for Bayesian model averaging (BMA) {cite:p}`chen2025bayesian`, in which the predictive probabilities of all collected samples contribute to the final prediction:
 
 ```{math}
-\hat{y} = \argmax_{y\in\mathcal{Y}}\mathbb{E}_{\theta\sim p(\theta\mid\mathcal{D})}\left[p(y\mid x,\theta)\right] \approx \argmax_{y\in\mathcal{Y}}\frac{1}{M}\sum_{s=1}^{M}p(y\mid x,\theta_s).
+\hat{y} = \operatorname*{arg\,max}_{y\in\mathcal{Y}}\mathbb{E}_{\theta\sim p(\theta\mid\mathcal{D})}\left[p(y\mid x,\theta)\right] \approx \operatorname*{arg\,max}_{y\in\mathcal{Y}}\frac{1}{M}\sum_{s=1}^{M}p(y\mid x,\theta_s).
 ```
 
 The goal of each SG-MCMC algorithm is to sample from the posterior distribution and collect such a sample set to reconstruct an approximate posterior distribution.
@@ -102,7 +102,7 @@ SG-MCMC methods have been shown to be effective on many small-scale deep learnin
 
 The loss surface (or energy landscape) of deep learning models is highly non-convex and multimodal {cite:p}`li2018visualizing,zhang2020cyclical`, which makes it difficult for sampling algorithms to move between modes. Moreover, a loss surface typically contains multiple local minima that may all represent good solutions. However, traditional SG-MCMC samplers commonly use a decaying step size and converge to only one local minimum, reducing their ability to explore the entire loss surface.
 
-To mitigate this problem, {cite:t}`zhang2020cyclical` proposed cyclical stochastic gradient MCMC (cSG-MCMC), which uses the cyclical step-size schedule shown in Figure [%s](#sgmcmc_fig:cyclical). The schedule is defined as
+To mitigate this problem, {cite:t}`zhang2020cyclical` proposed cyclical stochastic gradient MCMC (cSG-MCMC), which uses the cyclical step-size schedule shown in Figure [](#sgmcmc_fig:cyclical). The schedule is defined as
 
 ```{math}
 \alpha_t = \frac{\alpha_0}{2}
@@ -145,7 +145,7 @@ where {math}`f(\theta)=U(\theta)` is the negative log-posterior energy, {math}`\
     \right].
 ```
 
-This form provides a clear interpretation of the EMCMC sampling process: i) {math}`\theta` seeks low-energy regions of the energy landscape, and ii) {math}`\theta_a` acts as a “direction-correction force” that pulls {math}`\theta` away from sharp minima. Figure [%s](#sgmcmc_fig:emcmc) illustrates this process. EMCMC frames flatness-aware sampling as a standard MCMC process on an extended energy function without introducing an additional correction step. It also has convergence guarantees and can converge faster than previous flatness-aware methods {cite:p}`chaudhari2019entropy,dziugaite2018entropy`.
+This form provides a clear interpretation of the EMCMC sampling process: i) {math}`\theta` seeks low-energy regions of the energy landscape, and ii) {math}`\theta_a` acts as a “direction-correction force” that pulls {math}`\theta` away from sharp minima. Figure [](#sgmcmc_fig:emcmc) illustrates this process. EMCMC frames flatness-aware sampling as a standard MCMC process on an extended energy function without introducing an additional correction step. It also has convergence guarantees and can converge faster than previous flatness-aware methods {cite:p}`chaudhari2019entropy,dziugaite2018entropy`.
 
 :::{figure} assets/sg_mcmc/emcmc_reproduced.png
 :label: sgmcmc_fig:emcmc

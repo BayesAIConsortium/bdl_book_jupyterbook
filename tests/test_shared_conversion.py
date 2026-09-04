@@ -9,6 +9,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 from latex_normalize import normalize_notation  # noqa: E402
 from myst_structures import algorithm_to_myst, figure_to_myst  # noqa: E402
+from semantic_references import extract_references  # noqa: E402
 
 
 def test_book_expectation_macro_is_expanded() -> None:
@@ -27,6 +28,55 @@ def test_roman_numerals_are_literal_text() -> None:
     assert normalize_notation(r"\romannumeral1) first; \romannumeral2) second") == (
         "i) first; ii) second"
     )
+
+
+def test_kl_macro_supports_nested_braces() -> None:
+    source = r"\KL{p(\theta\mid x)}{q_{\psi}(\theta\mid x)}"
+    converted = normalize_notation(source)
+    assert converted == (
+        r"D_{KL}\left(p(\theta\mid x)\middle\|q_{\psi}(\theta\mid x)\right)"
+    )
+    assert r"\KL" not in converted
+
+
+def test_capital_tilde_is_normalized() -> None:
+    assert normalize_notation(r"\Tilde{w}_i") == r"\widetilde{w}_i"
+
+
+def test_argmin_and_argmax_are_expanded() -> None:
+    source = r"\argmin_{\psi} L(\psi), \argmax_{\theta} p(\theta)"
+    converted = normalize_notation(source)
+    assert r"\operatorname*{arg\,min}_{\psi}" in converted
+    assert r"\operatorname*{arg\,max}_{\theta}" in converted
+
+
+def test_abbreviated_semantic_references_are_normalized() -> None:
+    source = r"""
+\section{Sequential inference}
+\label{sec:sequential}
+See Eq.~\ref{eq:npe}, Sec.~\ref{sec:sequential}, and Fig.~\ref{fig:overview}.
+"""
+    converted, structures = extract_references(source)
+    restored = converted
+    for structure in structures:
+        restored = restored.replace(structure.placeholder, structure.markdown)
+
+    assert "Equation [](#eq:npe)" in restored
+    assert "Section [Sequential inference](#sec:sequential)" in restored
+    assert "Figure [](#fig:overview)" in restored
+    assert r"Eq.~\ref" not in restored
+    assert r"Sec.~\ref" not in restored
+    assert r"Fig.~\ref" not in restored
+
+
+def test_full_equation_word_preserves_lowercase() -> None:
+    source = r"The algorithm satisfies the equation \eqref{eq:invariance}."
+    converted, structures = extract_references(source)
+    restored = converted
+    for structure in structures:
+        restored = restored.replace(structure.placeholder, structure.markdown)
+
+    assert "satisfies the equation [](#eq:invariance)" in restored
 
 
 def test_algorithm2e_aligned_tcp_comment_is_preserved() -> None:
