@@ -9,6 +9,7 @@ headings belong in myst_structures.py.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 
 
 COMPOUND_REPLACEMENTS: tuple[tuple[str, str], ...] = (
@@ -48,6 +49,8 @@ SIMPLE_MATH_REPLACEMENTS: tuple[tuple[str, str], ...] = (
     (r"\Nats", r"\mathbb{N}"),
     (r"\N", r"\mathcal{N}"),
     (r"\transpose", r"^{\top}"),
+    (r"\argmin", r"\operatorname*{arg\,min}"),
+    (r"\argmax", r"\operatorname*{arg\,max}"),
     (r"\params", r"\theta"),
     (r"\inputs", "x"),
     (r"\targets", "y"),
@@ -62,6 +65,64 @@ TYPOGRAPHIC_COMMANDS: tuple[str, ...] = (
     r"\medskip",
     r"\bigskip",
 )
+
+
+def _parse_braced(text: str, start: int) -> tuple[str, int]:
+    """Parse one balanced braced argument and return its contents and next index."""
+    while start < len(text) and text[start].isspace():
+        start += 1
+    if start >= len(text) or text[start] != "{":
+        raise ValueError(f"Expected '{{' at position {start}")
+
+    depth = 0
+    for pos in range(start, len(text)):
+        if text[pos] == "{" and (pos == 0 or text[pos - 1] != "\\"):
+            depth += 1
+        elif text[pos] == "}" and (pos == 0 or text[pos - 1] != "\\"):
+            depth -= 1
+            if depth == 0:
+                return text[start + 1 : pos], pos + 1
+    raise ValueError("Unclosed brace group")
+
+
+def _replace_braced_command(
+    text: str,
+    command: str,
+    nargs: int,
+    render: Callable[[list[str]], str],
+) -> str:
+    """Replace a command with balanced braced arguments throughout a string."""
+    pieces: list[str] = []
+    pos = 0
+    while True:
+        command_pos = text.find(command, pos)
+        if command_pos < 0:
+            pieces.append(text[pos:])
+            break
+
+        # Avoid treating a prefix of a longer control word as the requested command.
+        after_command = command_pos + len(command)
+        if after_command < len(text) and text[after_command].isalpha():
+            pieces.append(text[pos:after_command])
+            pos = after_command
+            continue
+
+        pieces.append(text[pos:command_pos])
+        cursor = after_command
+        arguments: list[str] = []
+        try:
+            for _ in range(nargs):
+                argument, cursor = _parse_braced(text, cursor)
+                arguments.append(argument)
+        except ValueError:
+            pieces.append(text[command_pos:after_command])
+            pos = after_command
+            continue
+
+        pieces.append(render(arguments))
+        pos = cursor
+
+    return "".join(pieces)
 
 
 def normalize_indicator(text: str) -> str:
@@ -94,6 +155,26 @@ def normalize_expectation(text: str) -> str:
         text,
     )
     return re.sub(r"\\E\b", r"\\mathbb{E}", text)
+
+
+def normalize_kl(text: str) -> str:
+    r"""Expand the book's ``\KL{p}{q}`` macro to standard KL-divergence LaTeX."""
+    return _replace_braced_command(
+        text,
+        r"\KL",
+        2,
+        lambda args: rf"D_{{KL}}\left({args[0]}\middle\|{args[1]}\right)",
+    )
+
+
+def normalize_capital_tilde(text: str) -> str:
+    r"""Normalize non-standard ``\Tilde{...}`` to standard ``\widetilde{...}``."""
+    return _replace_braced_command(
+        text,
+        r"\Tilde",
+        1,
+        lambda args: rf"\widetilde{{{args[0]}}}",
+    )
 
 
 def _roman_numeral(number: int) -> str:
@@ -136,6 +217,8 @@ def normalize_notation(text: str) -> str:
     """Expand the conservative subset of global book notation macros."""
     text = normalize_indicator(text)
     text = normalize_expectation(text)
+    text = normalize_kl(text)
+    text = normalize_capital_tilde(text)
     text = normalize_roman_numerals(text)
     for source, replacement in COMPOUND_REPLACEMENTS:
         text = text.replace(source, replacement)
