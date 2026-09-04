@@ -43,13 +43,14 @@ def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
         structures.append(ExtractedStructure(token, markdown))
         return token
 
-    # Equation references: preserve explicit semantic wording and normalize Eq.
-    # to Equation. Bare \eqref remains semantic rather than becoming a number-only link.
+    # Preserve the author's capitalization for the full word "equation", while
+    # normalizing the abbreviation "Eq." to the explicit semantic word.
     text = re.sub(
-        r"\b(?:Equation|Eq\.)\s*~?\s*\\(?:eqref|ref)\{([^{}]+)\}",
-        lambda m: placeholder(f"Equation [](#{m.group(1)})"),
+        r"\b([Ee]quation|[Ee]q\.)\s*~?\s*\\(?:eqref|ref)\{([^{}]+)\}",
+        lambda m: placeholder(
+            f"{'equation' if m.group(1) == 'equation' else 'Equation'} [](#{m.group(2)})"
+        ),
         text,
-        flags=re.IGNORECASE,
     )
     text = re.sub(
         r"\\eqref\{([^{}]+)\}",
