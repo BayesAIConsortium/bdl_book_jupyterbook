@@ -69,6 +69,16 @@ See Eq.~\ref{eq:npe}, Sec.~\ref{sec:sequential}, and Fig.~\ref{fig:overview}.
     assert r"Fig.~\ref" not in restored
 
 
+def test_full_equation_word_preserves_lowercase() -> None:
+    source = r"The algorithm satisfies the equation \eqref{eq:invariance}."
+    converted, structures = extract_references(source)
+    restored = converted
+    for structure in structures:
+        restored = restored.replace(structure.placeholder, structure.markdown)
+
+    assert "satisfies the equation [](#eq:invariance)" in restored
+
+
 def test_algorithm2e_aligned_tcp_comment_is_preserved() -> None:
     source = r"""
 \caption{Example}
