@@ -109,6 +109,23 @@ def test_markdown_emphasis_trailing_space_moves_outside_delimiters() -> None:
     assert converted == "**Regression.**  If *important*  text follows."
 
 
+def test_adjacent_emphasis_spans_keep_their_spacing() -> None:
+    for delimiter in ("*", "**"):
+        source = (
+            f"Popular choices include {delimiter}deterministic rounding{delimiter} "
+            f"and {delimiter}stochastic rounding{delimiter}."
+        )
+        assert normalize_markdown_emphasis_spacing(source) == source
+
+
+def test_bare_table_and_part_references_are_protected() -> None:
+    source = r"Table \ref{tab:2}, (\ref{eq:1}), Book Part \ref{part:vi}"
+    marked, structures = extract_references(source)
+    for structure in structures:
+        marked = marked.replace(structure.placeholder, structure.markdown)
+    assert marked == "[](#tab:2), ([](#eq:1)), Book [](#part:vi)"
+
+
 def test_abbreviated_semantic_references_are_normalized() -> None:
     source = r"""
 \section{Sequential inference}

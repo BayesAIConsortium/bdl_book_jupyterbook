@@ -1,9 +1,9 @@
 (chap:sampling:intro)=
 # Introduction to sampling
 
-+++
 ## Introduction
 
++++
 The fundamental objective of Bayesian statistics is to compute the posterior distribution of a random variable {math}`\theta \in \Theta` given data {math}`\mathcal{D}`. In the context of supervised learning, where the data {math}`\mathcal{D}=\{X,Y\}` comprises features/inputs {math}`X` and responses/labels {math}`Y`, Bayes’ formula for the parameter posterior distribution takes the following form
 
 ```{math}
@@ -41,10 +41,10 @@ Simulating or sampling from {math}`p(y^* \mid x^*, \theta)`, or from {math}`\hat
 
 For the remainder of this chapter, we will consider sampling from a generic target distribution {math}`\pi(\theta) = {\kappa}(\theta)/Z`, where {math}`Z=\int_\Theta \kappa(\theta) \rm{d}\theta` may or may not be known. The reader can think of {math}`\pi(\theta):=p(\theta \mid \mathcal{D})` as the posterior already introduced in [](#eq:bayes_sampling), but where we drop the data {math}`\mathcal{D}` for notational convenience.
 
-+++
 (sec:mc)=
 ## Monte Carlo
 
++++
 The most fundamental sampling algorithm is the Monte Carlo algorithm {cite:p}`robert1999monte`, and it is the basis for many other sampling schemes. Monte Carlo works as follows. Suppose we have a random variable {math}`\theta \in \Theta` from a distribution which is continuous on {math}`\mathbb{R}^P`. Let {math}`\pi` be the probability density function for {math}`\theta` and assume that we are able to simulate independent and identically distributed (i.i.d.) samples from {math}`\pi`. Note that we may refer to {math}`\pi` as the distribution itself. For some function of interest {math}`h`, which is integrable with respect to {math}`\pi`, we wish to estimate an expectation
 
 ```{math}
@@ -118,10 +118,10 @@ so that the standard error of the Monte Carlo estimator is {math}`\sqrt{V/M}` an
 
 Often, a challenge is that we cannot sample from our target probability distribution {math}`\pi` directly, and can only evaluate or sample from a non-negative unbiased estimator of {math}`\kappa`. Addressing these challenges has led to the development of the algorithms presented in the remainder of this chapter.
 
-+++
 (sec:reject)=
 ## Rejection Sampling
 
++++
 Suppose that {math}`q(\theta)` is a probability density function from which we *can* sample relatively easily and that {math}`\pi(\theta)` is the target density from which we would like to sample. Suppose in addition that there exists a constant, {math}`c > 0`, such that
 
 ```{math}
@@ -163,9 +163,9 @@ Despite its attraction of ease of implementation and simulation, the efficiency 
 1. **Return** {math}`\{\theta_i\}_{i=1}^M`
 :::
 
-+++
 ## Importance Sampling
 
++++
 The importance sampling estimator of {math}`\mathbb{E}_\pi[h(\theta)]` begins by re-writing the integral as follows
 
 ```{math}
@@ -179,7 +179,7 @@ where {math}`q` is a density such that {math}`q(\theta)>0`, whenever {math}`\pi(
 \hat{h} = \frac{1}{M}\sum^M_{i=1}\frac{\pi{(\theta_i)}}{q{(\theta_i)}}h(\theta_i) = \frac{1}{M}\sum^M_{i=1}w(\theta_i)h(\theta_i) \, .
 ```
 
-We call this procedure *importance sampling*. The density {math}`q` is called the proposal or instrumental density and {math}`w(\theta_i)=\frac{\pi{(\theta_i)}}{q{(\theta_i)}}` are the* importance weights*. Note that {math}`\hat{h}` is an unbiased Monte Carlo estimator of {math}`\mathbb{E}_\pi[h(\theta)]`, as shown in Equation [](#eq:unbiased). There are two reasons why we might be interested in performing importance sampling:
+We call this procedure *importance sampling*. The density {math}`q` is called the proposal or instrumental density and {math}`w(\theta_i)=\frac{\pi{(\theta_i)}}{q{(\theta_i)}}` are the *importance weights*. Note that {math}`\hat{h}` is an unbiased Monte Carlo estimator of {math}`\mathbb{E}_\pi[h(\theta)]`, as shown in Equation [](#eq:unbiased). There are two reasons why we might be interested in performing importance sampling:
 
 *   Sampling from {math}`\pi(\theta)` is not possible or too expensive.
 
@@ -215,13 +215,13 @@ It is left as an exercise to the reader to build a consistent (but biased) self-
 
 As alluded to already, a major disadvantage of importance sampling is that it can result in high variance. There are numerous methods beyond what has been introduced here to alleviate such issues, including the *sequential importance sampling and resampling* methods which will be introduced later in Section [Sequential Monte Carlo](#sec:smc).
 
-+++
 (sec:mcmc)=
 ## Markov chain Monte Carlo
 
++++
 The preceding sections have introduced Monte Carlo integration and two classical approaches—rejection sampling and importance sampling—for drawing samples from a target distribution {math}`\pi(\theta)`, typically the posterior in Bayesian inference. While these methods are simple to use and theoretically well-founded, they suffer significant limitations in high-dimensional settings. Rejection sampling becomes increasingly inefficient as the dimension grows, due to the difficulty of finding proposal distributions that tightly bound the target. Importance sampling, although more flexible, tends to suffer from high variance unless the proposal distribution is well matched to the target {cite:p}`agapiou2017importance,chatterjee2018sample`—a condition that is notoriously hard to satisfy in practice, especially in the multimodal, heavy-tailed, and high-dimensional posteriors encountered in Bayesian deep learning {cite:p}`papamarkou2024position`.
 
-Markov Chain Monte Carlo (MCMC) provides a powerful and general framework to overcome these challenges. Rather than attempting to generate independent samples from {math}`\pi(\theta)`, MCMC constructs a *Markov chain* whose stationary distribution is {math}`\pi` itself. By simulating a trajectory through parameter space in such a way that, asymptotically, the empirical distribution of visited states converges to the target, MCMC transforms the task of independent sampling into one of designing a suitable transition mechanism that ensures both* ergodicity* and* invariance* with respect to {math}`\pi` {cite:p}`tierney1994markov`.
+Markov Chain Monte Carlo (MCMC) provides a powerful and general framework to overcome these challenges. Rather than attempting to generate independent samples from {math}`\pi(\theta)`, MCMC constructs a *Markov chain* whose stationary distribution is {math}`\pi` itself. By simulating a trajectory through parameter space in such a way that, asymptotically, the empirical distribution of visited states converges to the target, MCMC transforms the task of independent sampling into one of designing a suitable transition mechanism that ensures both *ergodicity* and *invariance* with respect to {math}`\pi` {cite:p}`tierney1994markov`.
 
 In practical terms, MCMC methods produce a correlated sequence of samples {math}`\{\theta_1, \theta_2, \ldots, \theta_M\}`, which, under suitable conditions, can still be used to approximate expectations under {math}`\pi` using ergodic averages. The canonical estimator takes the form:
 
@@ -236,6 +236,7 @@ In what follows, we introduce several fundamental MCMC algorithms, starting with
 (sec:mh)=
 ### Metropolis–Hastings
 
++++
 Markov chain Monte Carlo (MCMC) proceeds by generating a Markov chain {math}`\theta_1 \to \theta_2\to\ldots` with transition kernel {math}`\mathcal{M}`, described by a density {math}`p(\theta,\theta')` on {math}`\Theta^2`, which is invariant with respect to the target posterior {math}`\pi`:
 
 ```{math}
@@ -325,11 +326,12 @@ by symmetry. The symmetry of the rejection case is left as an exercise. This pro
 :::
 
 +++
-Invariance with respect to {math}`\pi` is a necessary condition for building convergent estimators from a Markov chain. The chain also needs to have certain other stability properties, collectively known as *ergodicity*, to ensure empirical averages [](#eq:mc) built from its output converge. A desirable and achievable property is called* geometric ergodicity*, which essentially guarantees linear convergence, i.e. the dependence on the initial condition vanishes geometrically.
+Invariance with respect to {math}`\pi` is a necessary condition for building convergent estimators from a Markov chain. The chain also needs to have certain other stability properties, collectively known as *ergodicity*, to ensure empirical averages [](#eq:mc) built from its output converge. A desirable and achievable property is called *geometric ergodicity*, which essentially guarantees linear convergence, i.e. the dependence on the initial condition vanishes geometrically.
 
 (sec:rwm)=
-## Random walk Metropolis
+#### Random walk Metropolis
 
++++
 A particularly simple—and historically important—special case of the Metropolis–Hastings algorithm is the *random–walk Metropolis* (RWM) proposal, in which one sets
 
 ```{math}
@@ -358,8 +360,9 @@ so that {math}`\theta' \sim \mathcal{N}\left(\theta,\lambda^{2}I_{P}\right)`, i.
 
 **Preconditioning.** When components of {math}`\theta` have very different scales or strong correlations, one can replace {math}`\lambda^2 I_{P}` by {math}`\lambda^2 V`, where {math}`V` is a positive-definite “preconditioning” matrix (often an estimate of the posterior covariance). This *preconditioned RWM* retains symmetry and thus the same simplified acceptance probability, but can yield orders-of-magnitude improvements in computational efficiency, i.e. less samples required to sample the target, because the proposed parameters {math}`\theta'` will be more closely aligned with the posterior distribution, and thus less likely to be rejected.
 
-## Gibbs Sampler
+#### Gibbs Sampler
 
++++
 Given a multi-variate {math}`\theta = (\theta_1, \theta_2 \dots \theta_n)`, it may be intractable to sample all at once. However if the full conditional distributions for each coordinate are known, then it becomes possible to apply *Gibbs sampling*.
 
 The Gibbs sampling algorithm is fairly straightforward. Given the proposals are known, the Gibbs algorithm updates the sample by updating each coordinate one at a time, i.e. {math}`\theta_i' \sim P(\theta_i \mid \theta_{\neg i})`, where {math}`\theta_{\neg i}` denotes all coordinates except {math}`i`. While it may be tempting to update all coordinates at the same time, this would not properly preserve the joint distribution as all coordinates would be updated independently. We include a simple formulation in [](#alg:intro:gibbs).
@@ -383,8 +386,9 @@ Given that the Gibbs sampler is drawing from the correct proposal, the typical M
 It is possible to extend the initial Gibbs sampler to a block-style approach in the case where the joint distribution over multiple coordinates is known. Instead of the single-coordinate marginal, if we know the joint distribution over one-set of coordinates conditioned on another set, it is possible to quickly sample by alternative sampling from each joint distribution. This is known as the Block-Gibbs sampler. More formally, if we have two sets of coordinates {math}`I, J`, the block Gibbs sampler proceeds by sampling {math}`\theta'_I \sim P(\theta_I \mid \theta_J)`, and then sampling {math}`\theta'_J \sim P(\theta_J \mid \theta'_I)`. This sampling algorithm avoids the pitfalls of the typical Gibbs sampler. However, it is only possible to use this in cases where the conditional distributions over blocks of coordinates is known.
 
 (sec:mala)=
-## Metropolis-adjusted Langevin Algorithm
+#### Metropolis-adjusted Langevin Algorithm
 
++++
 The random-walk Metropolis ignores gradient information about {math}`\pi`. The Metropolis–Adjusted Langevin Algorithm (MALA) rectifies this by using an Euler–Maruyama discretisation of the overdamped Langevin diffusion
 
 ```{math}
@@ -420,8 +424,9 @@ This drift term {math}`\nabla\log\kappa(\theta)` biases proposed moves towards r
 Preconditioning often dramatically accelerates convergence on anisotropic posteriors. However, because MALA relies on {math}`\nabla\log\kappa`, it can be sensitive to regions where the gradient is large or ill-behaved (e.g. lighter-than-Gaussian tails). Common mitigations include gradient clipping or fallback to RWM outside of a “trust region.”
 
 (sec:mcmc-perf)=
-## Monitoring Performance
+#### Monitoring Performance
 
++++
 Assessing the quality of an MCMC run is essential to ensure that empirical averages {math}`\hat{h}_{M}=\tfrac1M\sum_{i=1}^M h(\theta_i)` reliably approximates {math}`\mathbb{E}_{\pi}[h(\theta)]`. Three widely used diagnostics are:
 
 **1. Autocorrelation and Integrated Autocorrelation Time.** For a scalar summary of {math}`h(\theta)`, define the lag-{math}`k` autocorrelation
@@ -443,11 +448,11 @@ V_{\mathrm{eff}} =
 \mathrm{Var}_{\pi}[h]\,\Bigl(1 + 2\sum_{k=1}^\infty \rho_k\Bigr).
 ```
 
-The quantity {math}`\tau_{\mathrm{int}}=1+2\sum_{k=1}^\infty\rho_k` is the *integrated autocorrelation time*, and the* effective sample size* {math}`\mathrm{ESS}=M/\tau_{\mathrm{int}}` measures the number of independent draws represented by {math}`M` correlated samples. Figure [](#fig:acf) illustrates autocorrelation decay. A related metric is the* expected squared jumping distance* (ESJD) {math}`\mathbb{E}[\|\theta_{i+1}-\theta_i\|^2]`, which balances move size against acceptance rate. Larger moves will reduce the correlation between elements of the Markov chain, however, larger moves are also less likely to be accepted, which means that the chain does not evolve. Therefore, the challenge for practitioners, is to balance between small moves (high correlation and high acceptance rate) and large moves (low correlation and low acceptance rate).
+The quantity {math}`\tau_{\mathrm{int}}=1+2\sum_{k=1}^\infty\rho_k` is the *integrated autocorrelation time*, and the *effective sample size* {math}`\mathrm{ESS}=M/\tau_{\mathrm{int}}` measures the number of independent draws represented by {math}`M` correlated samples. Figure [](#fig:acf) illustrates autocorrelation decay. A related metric is the *expected squared jumping distance* (ESJD) {math}`\mathbb{E}[\|\theta_{i+1}-\theta_i\|^2]`, which balances move size against acceptance rate. Larger moves will reduce the correlation between elements of the Markov chain, however, larger moves are also less likely to be accepted, which means that the chain does not evolve. Therefore, the challenge for practitioners, is to balance between small moves (high correlation and high acceptance rate) and large moves (low correlation and low acceptance rate).
 
 **2. Trace Plots.** Plotting the sequence {math}`\{h(\theta_i)\}_{i=1}^M` versus iteration {math}`i` provides a simple-to-interpret visual representation of mixing and stationarity. Well‐mixed chains rapidly traverse the bulk of the posterior, showing no apparent trends or “stickiness” (see Left Panel Figure [](#fig:trace)). Conversely, slow mixing or multimodality is signalled by long periods of drift or entrapment in subregions of the posterior (see Right Panel Figure [](#fig:trace)). Trace plots are a useful visual tool for diagnosing the efficiency of an MCMC algorithm, however, they tend to be most useful for low-dimensional posteriors as it is easier to visualise all of the parameters {math}`\theta`, whereas, for high-dimensional posteriors, visualising all of the parameters in the Markov chain individually is often impractical.
 
-**3. Potential Scale Reduction (Gelman–Rubin) Diagnostic.** When multiple chains {math}`\{\theta_i^{(c)}\}` are run from overdispersed starting points, one can compare the *between-chain variance* {math}`B` to the* within-chain variance* {math}`W`. The* potential scale reduction factor*
+**3. Potential Scale Reduction (Gelman–Rubin) Diagnostic.** When multiple chains {math}`\{\theta_i^{(c)}\}` are run from overdispersed starting points, one can compare the *between-chain variance* {math}`B` to the *within-chain variance* {math}`W`. The *potential scale reduction factor*
 
 ```{math}
 \widehat{R}
@@ -462,7 +467,7 @@ In practice, one would usually employ a combination of these diagnostics: trace 
 :::{prf:example}
 
 +++
-We present a Metropolis-Hastings experiment aiming to sample from a target {math}`\pi(\theta)=N(0,1)`. Our proposal is based on a random walk scheme (Section [Random walk Metropolis](#sec:rwm)) {math}`\theta' = \theta + \epsilon`, where {math}`\epsilon \sim \mathcal{N}(0, \lambda^{2} I)` is additive Gaussian noise. We run two different experiments, with different choices of step size parameter {math}`\lambda \in \{0.01,0.9\}`. Our simulations are plotted below in Figures [%s](#fig:trace) and [%s](#fig:acf). For the larger choice of {math}`\lambda`, we notice that the chain explores the space well as the iterations progress, with the ACF decorrelating rapidly. However, for the smaller value of {math}`\lambda`, the chain wanders slowly and mixes poorly, and the ACF decreases much slower, remaining close to one at moderate lags.
+We present a Metropolis-Hastings experiment aiming to sample from a target {math}`\pi(\theta)=N(0,1)`. Our proposal is based on a random walk scheme (Section [Random walk Metropolis](#sec:rwm)) {math}`\theta' = \theta + \epsilon`, where {math}`\epsilon \sim \mathcal{N}(0, \lambda^{2} I)` is additive Gaussian noise. We run two different experiments, with different choices of step size parameter {math}`\lambda \in \{0.01,0.9\}`. Our simulations are plotted below in Figures [](#fig:trace) and [](#fig:acf). For the larger choice of {math}`\lambda`, we notice that the chain explores the space well as the iterations progress, with the ACF decorrelating rapidly. However, for the smaller value of {math}`\lambda`, the chain wanders slowly and mixes poorly, and the ACF decreases much slower, remaining close to one at moderate lags.
 :::
 
 :::{figure}
@@ -493,13 +498,13 @@ Trace plots for $\lambda=0.9$ (left) and $\lambda=0.01$ (right).
 Corresponding ACFs for $\lambda=0.9$ (left) and $\lambda=0.01$ (right).
 :::
 
-+++
 (sec:hmc)=
-## Hamiltonian Monte Carlo
+### Hamiltonian Monte Carlo
 
-Random–walk Metropolis (RWM) requires proposal steps of size {math}`\lambda=O(d^{-1/2})` to maintain a non–degenerate acceptance rate in dimension {math}`d`, whereas MALA can take steps of size {math}`O(d^{-1/6})`. *Hamiltonian Monte Carlo* (HMC) goes a step further: with an integration step size {math}`\epsilon=O(d^{-1/4})` it still enjoys an acceptance rate bounded away from 0 while exploring much larger regions of parameter space between consecutive accept–reject decisions {cite:p}`beskos2013optimal,duane1987hybrid,neal2011mcmc,cobb2021scaling`. The key is to embed the {math}`d`‐dimensional parameter {math}`\theta` in a {math}`2d`-dimensional* phase space* and simulate approximate Hamiltonian dynamics that preserve a surrogate “total energy”.
++++
+Random–walk Metropolis (RWM) requires proposal steps of size {math}`\lambda=O(d^{-1/2})` to maintain a non–degenerate acceptance rate in dimension {math}`d`, whereas MALA can take steps of size {math}`O(d^{-1/6})`. *Hamiltonian Monte Carlo* (HMC) goes a step further: with an integration step size {math}`\epsilon=O(d^{-1/4})` it still enjoys an acceptance rate bounded away from 0 while exploring much larger regions of parameter space between consecutive accept–reject decisions {cite:p}`beskos2013optimal,duane1987hybrid,neal2011mcmc,cobb2021scaling`. The key is to embed the {math}`d`‐dimensional parameter {math}`\theta` in a {math}`2d`-dimensional *phase space* and simulate approximate Hamiltonian dynamics that preserve a surrogate “total energy”.
 
-**Extended target and Hamiltonian.** Introduce an auxiliary *momentum* variable {math}`z\in\mathbb{R}^d` and a positive–definite* mass matrix* {math}`M_0`. Define the Hamiltonian
+**Extended target and Hamiltonian.** Introduce an auxiliary *momentum* variable {math}`z\in\mathbb{R}^d` and a positive–definite *mass matrix* {math}`M_0`. Define the Hamiltonian
 
 ```{math}
 H(\theta,z)=U(\theta)+K(z)
@@ -589,11 +594,11 @@ Because the leapfrog map is volume–preserving (i.e. the Jacobian {math}`=1`) a
 
 Because HMC combines long, momentum‐driven proposals with high acceptance probabilities, it has become the default sampler in many Bayesian deep‐learning applications, where posteriors are high‐dimensional, strongly correlated and feature narrow valleys that thwart simpler MCMC methods.
 
-+++
 (sec:smc)=
 ## Sequential Monte Carlo
 
-Sequential Monte Carlo (SMC) methods are a set of Monte Carlo algorithms designed to sample from a sequence of target probability densities {math}`\{\pi_n(\theta_{1:n})\}` of increasing dimension, where each one is defined on the product space {math}`\Theta^n = \prod_{i=1}^n \Theta` {cite:p}`doucet2001sequential,del2004feynman`. This is referred to as the *smoothing distribution* in the context of state-space models. Often one may be interested only in the time {math}`n` marginal {math}`\pi_n(\theta_n)`, which is known as the* filtering distribution*. Suppose
++++
+Sequential Monte Carlo (SMC) methods are a set of Monte Carlo algorithms designed to sample from a sequence of target probability densities {math}`\{\pi_n(\theta_{1:n})\}` of increasing dimension, where each one is defined on the product space {math}`\Theta^n = \prod_{i=1}^n \Theta` {cite:p}`doucet2001sequential,del2004feynman`. This is referred to as the *smoothing distribution* in the context of state-space models. Often one may be interested only in the time {math}`n` marginal {math}`\pi_n(\theta_n)`, which is known as the *filtering distribution*. Suppose
 
 ```{math}
 \begin{align}
@@ -679,7 +684,7 @@ W_n^{(i)} = \frac{w_n(\theta_{1:n}^{(i)})}{\sum_{i=1}^M w_n(\theta_{1:n}^{(i)})}
 \end{align}
 ```
 
-These are the ingredients of the *sequential importance sampling* (SIS) algorithm, given in [](#alg:SIS). In Algorithms [%s](#alg:SIS) and [%s](#alg:SMC) we take {math}`h_n(\theta_{1:n}) = \theta_n`.
+These are the ingredients of the *sequential importance sampling* (SIS) algorithm, given in [](#alg:SIS). In Algorithms [](#alg:SIS) and [](#alg:SMC) we take {math}`h_n(\theta_{1:n}) = \theta_n`.
 
 :::{prf:algorithm} Sequential Importance Sampling (SIS) to estimate $\mathbb{E}_n(\theta_n)$ for $n \geq 1$
 :label: alg:SIS
@@ -787,10 +792,10 @@ W_{n}^{(i)} \gets
     $$
 :::
 
-+++
 (sec:intro:summary)=
 ## Summary
 
++++
 This chapter introduced the Monte Carlo algorithm and a number of methods that develop it. Each addresses the same underlying difficulty: simulating from, or estimating expectations under, a target distribution {math}`\pi(\theta)` that in most applications can only be evaluated up to an unknown normalising constant.
 
 When independent samples from {math}`\pi` are available, Monte Carlo integration (Section [Monte Carlo](#sec:mc)) applies directly. When they are not, rejection sampling (Section [Rejection Sampling](#sec:reject)) and importance sampling construct estimators from an accessible proposal distribution. Both are exact in principle, but become inefficient in high dimension unless the proposal closely matches the target.

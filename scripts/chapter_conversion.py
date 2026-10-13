@@ -23,10 +23,12 @@ from myst_structures import (
     ExtractedStructure,
     extract_algorithms,
     extract_figures,
+    extract_headings,
     normalize_headings_for_latex_pass,
 )
 from proof_structures import ProofStructure, extract_proof_environments, proof_directive
 from semantic_references import extract_references
+from table_structures import extract_metric_tables
 
 
 MYST_TIMEOUT_SECONDS = 60
@@ -69,6 +71,9 @@ def prepare_latex(
     text, figure_structures = extract_figures(text)
     structures.extend(figure_structures)
 
+    text, table_structures = extract_metric_tables(text)
+    structures.extend(table_structures)
+
     text, reference_structures = extract_references(text)
     structures.extend(reference_structures)
 
@@ -78,6 +83,8 @@ def prepare_latex(
 
     text = normalize_latex(text)
     text = normalize_headings_for_latex_pass(text)
+    text, heading_structures = extract_headings(text)
+    structures.extend(heading_structures)
     return text, structures, proof_structures, footnote_structures
 
 
@@ -93,8 +100,10 @@ def normalize_markdown_emphasis_spacing(text: str) -> str:
     ``**Regression. **``. Markdown requires the closing delimiter to follow the
     emphasized text, so preserve the whitespace while moving it outside.
     """
-    text = re.sub(r"\*\*([^*\n]*?\S)([ \t]+)\*\*", r"**\1**\2", text)
-    return re.sub(r"(?<!\*)\*([^*\n]*?\S)([ \t]+)\*(?!\*)", r"*\1*\2", text)
+    # Consume correctly spaced spans too, so a closing delimiter cannot be
+    # mistaken for the opening delimiter of the text between two spans.
+    text = re.sub(r"\*\*([^*\n]*?\S)([ \t]*)\*\*", r"**\1**\2", text)
+    return re.sub(r"(?<!\*)\*([^*\n]*?\S)([ \t]*)\*(?!\*)", r"*\1*\2", text)
 
 
 def summarize_myst_output(output: str) -> None:
@@ -170,7 +179,12 @@ def _convert_fragment(tex: str, myst_outputs: list[str]) -> str:
 
 def _is_block_structure(structure: ExtractedStructure) -> bool:
     """Return whether a structure must stay outside the MyST fragment stream."""
-    return structure.placeholder.startswith(("BDLALGORITHMPLACEHOLDER", "BDLFIGUREPLACEHOLDER"))
+    return structure.placeholder.startswith(
+        (
+            "BDLALGORITHMPLACEHOLDER", "BDLFIGUREPLACEHOLDER",
+            "BDLTABLEPLACEHOLDER", "BDLHEADINGPLACEHOLDER",
+        )
+    )
 
 
 def run_myst_with_structures(
@@ -287,6 +301,8 @@ def clean_generated_markdown(
         "BDLALGORITHMPLACEHOLDER",
         "BDLFIGUREPLACEHOLDER",
         "BDLFOOTNOTEPLACEHOLDER",
+        "BDLTABLEPLACEHOLDER",
+        "BDLHEADINGPLACEHOLDER",
     ):
         if marker in text:
             raise ValueError(f"Unrestored placeholder remained in generated Markdown: {marker}")

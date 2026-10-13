@@ -81,7 +81,7 @@ def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
     # (for example, ``Algorithm 2`` or ``Theorem 1``). Preserve the target but
     # do not duplicate that prefix in surrounding Markdown.
     text = re.sub(
-        r"\b(?:Algorithm|Theorem|Proposition|Lemma|Definition|Remark|Assumption)\s*~?\s*\\ref\{([^{}]+)\}",
+        r"\b(?:Algorithm|Theorem|Proposition|Lemma|Definition|Remark|Assumption|Table|Part)\s*~?\s*\\ref\{([^{}]+)\}",
         lambda m: placeholder(f"[](#{m.group(1)})"),
         text,
     )
@@ -89,6 +89,14 @@ def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
     text = re.sub(
         r"\b(Chapter|Chapters)\s*~?\s*\\ref\{([^{}]+)\}",
         lambda m: placeholder(f"{m.group(1)} [](#{m.group(2)})"),
+        text,
+    )
+
+    # Protect remaining references as well: MyST's TeX exporter can otherwise
+    # insert literal %s display text or a fixed, incorrect table number.
+    text = re.sub(
+        r"\\ref\{([^{}]+)\}",
+        lambda m: placeholder(f"[](#{m.group(1)})"),
         text,
     )
 
