@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass
 
 from latex_normalize import normalize_notation, strip_tex_comments
+from text_normalize import normalize_tex_text_accents
 
 
 PROOF_KINDS = (
@@ -61,6 +62,7 @@ def _textual_citation(raw: str) -> str:
 
 
 def _clean_inline_tex(text: str) -> str:
+    text = normalize_tex_text_accents(text)
     text = normalize_notation(text)
     text = re.sub(r"\\(?:cite|citep)\{([^{}]+)\}", lambda m: _parenthetical_citation(m.group(1)), text)
     text = re.sub(r"\\citet\{([^{}]+)\}", lambda m: _textual_citation(m.group(1)), text)
@@ -139,6 +141,8 @@ def _clean_algorithm_fragment(text: str) -> str:
     text = _replace_inline_algorithm_comments(text)
     text = _inline_math_to_myst(text)
     text = normalize_notation(text)
+    text = re.sub(r"\\textbf\{([^{}]*)\}", r"**\1**", text)
+    text = re.sub(r"\\(?:emph|textit)\{([^{}]*)\}", r"*\1*", text)
     text = re.sub(r"\\eqref\{([^{}]+)\}", lambda m: f"Equation [](#${m.group(1)})".replace("#$", "#"), text)
     text = re.sub(r"\\ref\{([^{}]+)\}", lambda m: f"[](#${m.group(1)})".replace("#$", "#"), text)
     text = text.replace(r"\KwTo", " to ").replace(r"\;", "")
@@ -443,6 +447,31 @@ def normalize_headings_for_latex_pass(text: str) -> str:
         text,
         count=1,
     )
+
+
+def extract_headings(text: str) -> tuple[str, list[ExtractedStructure]]:
+    """Keep heading levels stable across independently converted fragments."""
+    structures: list[ExtractedStructure] = []
+    pattern = re.compile(r"\\(section|subsection|subsubsection|paragraph)\*?\{")
+    pieces: list[str] = []
+    pos = 0
+    for match in pattern.finditer(text):
+        if match.start() < pos:
+            continue
+        title, end = parse_braced(text, match.end() - 1)
+        title = _inline_math_to_myst(_clean_inline_tex(title))
+        level = {"section": 2, "subsection": 3, "subsubsection": 4, "paragraph": 4}[match.group(1)]
+        markdown = f"{'#' * level} {title}"
+        label = re.match(r"\s*\\label\{([^{}]+)\}", text[end:])
+        if label:
+            markdown = f"({label.group(1)})=\n{markdown}"
+            end += label.end()
+        token = f"BDLHEADINGPLACEHOLDER{len(structures):04d}"
+        structures.append(ExtractedStructure(token, markdown))
+        pieces.extend([text[pos:match.start()], f"\n\n{token}\n\n"])
+        pos = end
+    pieces.append(text[pos:])
+    return "".join(pieces), structures
 
 
 def restore_extracted_structures(text: str, structures: list[ExtractedStructure]) -> str:

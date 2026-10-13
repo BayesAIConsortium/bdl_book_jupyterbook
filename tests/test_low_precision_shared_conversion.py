@@ -8,7 +8,8 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 from latex_normalize import normalize_latex, normalize_notation  # noqa: E402
-from myst_structures import algorithm_to_myst, extract_figures  # noqa: E402
+from myst_structures import algorithm_to_myst, extract_figures, extract_headings  # noqa: E402
+from table_structures import extract_metric_tables  # noqa: E402
 
 
 def test_low_precision_math_macros_are_expanded() -> None:
@@ -67,13 +68,52 @@ def test_algorithm2e_foreach_else_and_kwret_are_converted() -> None:
     assert r"\KwRet" not in converted
 
 
+def test_algorithm_text_formatting_is_converted() -> None:
+    converted = algorithm_to_myst(r"\textbf{sample} $c_i$\; \textbf{clip} $x$\;")
+    assert "**sample** {math}`c_i`" in converted
+    assert "**clip** {math}`x`" in converted
+    assert r"\textbf" not in converted
+
+
+def test_heading_levels_and_labels_survive_fragment_boundaries() -> None:
+    source = r"\subsection{SGHMC}\label{sec:hmc} Body \paragraph{\textbf{Experiments}}"
+    marked, structures = extract_headings(source)
+    assert r"\subsection" not in marked
+    assert structures[0].markdown == "(sec:hmc)=\n### SGHMC"
+    assert structures[1].markdown == "#### **Experiments**"
+
+
+def test_metric_table_headers_rows_and_standard_errors_are_preserved() -> None:
+    source = r"""
+\begin{table}
+\begin{tabular}{l|cc|cc}
+\hline
+ &\multicolumn{2}{c|}{Test Errors (\%)} & \multicolumn{2}{c}{ECE $\downarrow$(\%)}\\
+ &CIFAR-10 &CIFAR-100 &CIFAR-10 &CIFAR-100\\
+ 8-bit Fixed Point &&\\\hline
+ VC SGLDLP-L &7.13 {\scriptsize$\pm$0.01} &26.62 {\scriptsize$\pm$0.16} &0.60 &3.19\\
+\end{tabular}
+\caption{Test Error and ECE.}\label{ch5:tab:1}
+\end{table}
+"""
+    marked, structures = extract_metric_tables(source)
+    assert marked.strip() == "BDLTABLEPLACEHOLDER0000"
+    table = structures[0].markdown
+    assert ":label: ch5:tab:1" in table
+    assert "Test Errors (%) — CIFAR-100" in table
+    assert "ECE $\\downarrow$(%) — CIFAR-10" in table
+    assert "| VC SGLDLP-L | 7.13 ± 0.01 | 26.62 ± 0.16 | 0.60 | 3.19 |" in table
+    assert "| **8-bit Fixed Point** |  |  |  |  |" in table
+    assert all(line.count("|") == 6 for line in table.splitlines() if line.startswith("|"))
+
+
 def test_starred_multi_image_figure_is_extracted() -> None:
     source = r"""
 \begin{figure*}
 \centering
 \includegraphics[width=4cm]{sampling_methods/example/fig/a.pdf}
 \includegraphics[width=4cm]{sampling_methods/example/fig/b.pdf}
-\caption{Two panels.}
+\caption{Two panels with na\"ive sampling.}
 \label{fig:star}
 \end{figure*}
 """
@@ -85,4 +125,4 @@ def test_starred_multi_image_figure_is_extracted() -> None:
     assert "sampling_methods/example/fig/a.pdf" in markdown
     assert "sampling_methods/example/fig/b.pdf" in markdown
     assert ":label: fig:star" in markdown
-    assert "Two panels." in markdown
+    assert "Two panels with naïve sampling." in markdown
