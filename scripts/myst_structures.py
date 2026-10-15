@@ -229,7 +229,11 @@ def _algorithm_sequence(text: str, indent: int = 0) -> list[str]:
             lines.extend(_algorithm_sequence(body, indent + 1))
             continue
 
-        for command, label in ((r"\For", "For"), (r"\While", "While"), (r"\If", "If")):
+        for command, label in (
+            (r"\For", "For"), (r"\While", "While"),
+            (r"\uElseIf", "Else if"), (r"\ElseIf", "Else if"),
+            (r"\uIf", "If"), (r"\If", "If"),
+        ):
             if text.startswith(command, pos):
                 condition, next_pos = parse_braced(text, pos + len(command))
                 body, pos = parse_braced(text, next_pos)
