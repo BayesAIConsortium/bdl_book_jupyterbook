@@ -1,5 +1,5 @@
 (chap:sampling_methods_sg_mcmc)=
-# Stochastic Gradient MCMC
+# Stochastic gradient MCMC
 
 +++
 Deep learning models extensively use stochastic gradients (i.e., mini-batches) to reduce the memory requirements of model training {cite:p}`bottou1991stochastic,amari1993backpropagation`. Under suitable assumptions, stochastic gradients computed from individual samples or minibatches can be used in place of full-batch gradients while retaining almost-sure convergence guarantees. {cite:p}`sebbouh2021almost`. In this chapter, we introduce stochastic gradient MCMC (SG-MCMC) methods, in which stochastic gradients make MCMC suitable for modern deep learning models.

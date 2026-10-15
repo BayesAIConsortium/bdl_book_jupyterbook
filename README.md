@@ -52,6 +52,8 @@ bash scripts/run_part1_conversions.sh
 
 To regenerate Chapter 6 alone, run `uv run python scripts/convert_discrete_sampling.py` from the repository root. Figure copying automatically prefers matching SVG, PNG, or other web images over the source PDF. Section references use MyST's native `{name}` substitution, so links to headings in other chapters display their current titles automatically.
 
+Editorial chapter titles can be set in `CHAPTER_TITLE_OVERRIDES` in `scripts/common.py`, keyed by the chapter's stable label. Both the skeleton generator and chapter converters use these exact titles, keeping chapter lists, headings, and sidebar entries consistent across regeneration while preserving acronyms and proper names.
+
 ## Pull changes and preview locally
 
 For the normal local preview workflow, run from the repository root:
