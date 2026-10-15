@@ -11,7 +11,7 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
-from common import TEX_ROOT
+from common import TEX_ROOT, display_chapter_title
 from footnote_structures import FootnoteStructure, extract_footnotes, restore_footnotes
 from latex_normalize import (
     normalize_latex,
@@ -364,7 +364,7 @@ def convert_chapter(config: ChapterConfig) -> None:
         generated,
         structures,
         footnote_structures,
-        title=config.title,
+        title=display_chapter_title(config.label, config.title),
         label=config.label,
     )
     markdown = copy_and_rewrite_images(

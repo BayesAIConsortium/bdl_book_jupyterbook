@@ -7,11 +7,13 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from common import tex_path
+from common import display_chapter_title, tex_path
 
 
 TOC_BEGIN = "    # BEGIN GENERATED BOOK TOC"
 TOC_END = "    # END GENERATED BOOK TOC"
+CHAPTER_LIST_BEGIN = "<!-- BEGIN GENERATED CHAPTER LIST -->"
+CHAPTER_LIST_END = "<!-- END GENERATED CHAPTER LIST -->"
 CONTENT_ROOT = Path("content")
 MYST_CONFIG = CONTENT_ROOT / "myst.yml"
 
@@ -100,7 +102,7 @@ def chapter_metadata(source: str) -> Chapter:
     return Chapter(
         source=source,
         output=output,
-        title=clean_title(raw_title),
+        title=display_chapter_title(chapter_labels[0], clean_title(raw_title)),
         label=chapter_labels[0],
     )
 
@@ -155,6 +157,32 @@ def write_placeholder(path: Path, label: str, title: str, kind: str) -> bool:
     return True
 
 
+def write_part_overview(part: Part, first_chapter: int) -> bool:
+    """Maintain chapter links while preserving any authored overview content."""
+    title = f"Part {part.number} — {part.title}"
+    placeholder = placeholder_text(part.label, title, "Part")
+    existing = part.output.read_text(encoding="utf-8") if part.output.exists() else placeholder
+    links = [
+        f"- [Chapter {number}. {chapter.title}]"
+        f"({chapter.output.relative_to(part.output.parent).as_posix()})"
+        for number, chapter in enumerate(part.chapters, start=first_chapter)
+    ]
+    block = "\n".join([CHAPTER_LIST_BEGIN, *links, CHAPTER_LIST_END])
+    if existing == placeholder:
+        updated = f"({part.label})=\n# {title}\n\n{block}\n"
+    elif CHAPTER_LIST_BEGIN in existing and CHAPTER_LIST_END in existing:
+        before, rest = existing.split(CHAPTER_LIST_BEGIN, 1)
+        _, after = rest.split(CHAPTER_LIST_END, 1)
+        updated = f"{before}{block}{after}"
+    else:
+        updated = f"{existing.rstrip()}\n\n{block}\n"
+    if updated == existing:
+        return False
+    part.output.parent.mkdir(parents=True, exist_ok=True)
+    part.output.write_text(updated, encoding="utf-8")
+    return True
+
+
 def toc_path(path: Path) -> str:
     """Return a path relative to the MyST project root under content/."""
     return path.relative_to(CONTENT_ROOT).as_posix()
@@ -189,9 +217,13 @@ def update_myst_toc(parts: tuple[Part, ...]) -> None:
 def main() -> None:
     parts = parse_book_structure()
     created = 0
+    first_chapter = 1
 
     for part in parts:
-        if write_placeholder(
+        if part.label == "part:sampling_methods":
+            if write_part_overview(part, first_chapter):
+                created += 1
+        elif write_placeholder(
             part.output,
             part.label,
             f"Part {part.number} — {part.title}",
@@ -201,12 +233,13 @@ def main() -> None:
         for chapter in part.chapters:
             if write_placeholder(chapter.output, chapter.label, chapter.title, "Chapter"):
                 created += 1
+        first_chapter += len(part.chapters)
 
     update_myst_toc(parts)
     chapter_count = sum(len(part.chapters) for part in parts)
     print(
         f"Book skeleton: {len(parts)} parts, {chapter_count} chapters; "
-        f"created/updated {created} placeholder pages."
+        f"created/updated {created} pages."
     )
 
 

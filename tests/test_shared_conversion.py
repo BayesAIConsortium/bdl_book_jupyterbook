@@ -138,8 +138,8 @@ See Eq.~\ref{eq:npe}, Sec.~\ref{sec:sequential}, and Fig.~\ref{fig:overview}.
         restored = restored.replace(structure.placeholder, structure.markdown)
 
     assert "Equation [](#eq:npe)" in restored
-    assert "Section [Sequential inference](#sec:sequential)" in restored
-    assert "Figure [](#fig:overview)" in restored
+    assert "[Section {name}](#sec:sequential)" in restored
+    assert "[](#fig:overview)" in restored
     assert r"Eq.~\ref" not in restored
     assert r"Sec.~\ref" not in restored
     assert r"Fig.~\ref" not in restored
