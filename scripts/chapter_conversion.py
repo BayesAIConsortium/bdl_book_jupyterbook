@@ -12,6 +12,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from common import TEX_ROOT, display_chapter_title
+from content_structures import (
+    CalloutStructure,
+    callout_directive,
+    extract_callouts,
+    extract_subequations,
+)
 from footnote_structures import FootnoteStructure, extract_footnotes, restore_footnotes
 from latex_normalize import (
     normalize_latex,
@@ -29,6 +35,7 @@ from myst_structures import (
 from proof_structures import ProofStructure, extract_proof_environments, proof_directive
 from semantic_references import extract_references
 from table_structures import extract_metric_tables
+from tex_metadata import source_chapter_title
 
 
 MYST_TIMEOUT_SECONDS = 60
@@ -74,6 +81,9 @@ def prepare_latex(
     text, table_structures = extract_metric_tables(text)
     structures.extend(table_structures)
 
+    text, math_structures = extract_subequations(text)
+    structures.extend(math_structures)
+
     text, reference_structures = extract_references(text)
     structures.extend(reference_structures)
 
@@ -85,6 +95,8 @@ def prepare_latex(
     text = normalize_headings_for_latex_pass(text)
     text, heading_structures = extract_headings(text)
     structures.extend(heading_structures)
+    text, callouts = extract_callouts(text)
+    structures.extend(callouts)
     return text, structures, proof_structures, footnote_structures
 
 
@@ -100,10 +112,27 @@ def normalize_markdown_emphasis_spacing(text: str) -> str:
     ``**Regression. **``. Markdown requires the closing delimiter to follow the
     emphasized text, so preserve the whitespace while moving it outside.
     """
-    # Consume correctly spaced spans too, so a closing delimiter cannot be
-    # mistaken for the opening delimiter of the text between two spans.
+    # Math and code can contain literal stars (for example, theta_*). Never
+    # interpret those as prose emphasis delimiters.
+    protected: list[str] = []
+
+    def protect(match: re.Match[str]) -> str:
+        protected.append(match.group(0))
+        return f"BDLEMPHASISPROTECTED{len(protected) - 1:06d}"
+
+    spans = (
+        r"```[\s\S]*?```|`[^`\n]*`|"
+        r"(?<!\\)\$\$[\s\S]*?(?<!\\)\$\$|"
+        r"(?<![\\$])\$(?!\$)[^\n$]*(?<!\\)\$|\\\*"
+    )
+    text = re.sub(spans, protect, text)
+    # Consume valid spans too, so adjacent closing/opening delimiters cannot
+    # accidentally be treated as the emphasis around the intervening prose.
     text = re.sub(r"\*\*([^*\n]*?\S)([ \t]*)\*\*", r"**\1**\2", text)
-    return re.sub(r"(?<!\*)\*([^*\n]*?\S)([ \t]*)\*(?!\*)", r"*\1*\2", text)
+    text = re.sub(r"(?<!\*)\*([^*\n]*?\S)([ \t]*)\*(?!\*)", r"*\1*\2", text)
+    for index, original in enumerate(protected):
+        text = text.replace(f"BDLEMPHASISPROTECTED{index:06d}", original)
+    return text
 
 
 def summarize_myst_output(output: str) -> None:
@@ -182,7 +211,7 @@ def _is_block_structure(structure: ExtractedStructure) -> bool:
     return structure.placeholder.startswith(
         (
             "BDLALGORITHMPLACEHOLDER", "BDLFIGUREPLACEHOLDER",
-            "BDLTABLEPLACEHOLDER", "BDLHEADINGPLACEHOLDER",
+            "BDLTABLEPLACEHOLDER", "BDLHEADINGPLACEHOLDER", "BDLMATHPLACEHOLDER",
         )
     )
 
@@ -204,7 +233,8 @@ def run_myst_with_structures(
         if _is_block_structure(structure)
     }
     proofs = {structure.placeholder: structure for structure in proof_structures}
-    split_placeholders = list(blocks) + list(proofs)
+    callouts = {s.placeholder: s for s in structures if isinstance(s, CalloutStructure)}
+    split_placeholders = list(blocks) + list(proofs) + list(callouts)
     myst_outputs: list[str] = []
 
     if not split_placeholders:
@@ -228,6 +258,12 @@ def run_myst_with_structures(
 
             if piece in blocks:
                 parts.append(blocks[piece])
+                continue
+
+            callout = callouts.get(piece)
+            if callout is not None:
+                body = convert_stream(normalize_latex(callout.body_tex))
+                parts.append(callout_directive(callout, body))
                 continue
 
             proof = proofs.get(piece)
@@ -303,6 +339,8 @@ def clean_generated_markdown(
         "BDLFOOTNOTEPLACEHOLDER",
         "BDLTABLEPLACEHOLDER",
         "BDLHEADINGPLACEHOLDER",
+        "BDLCALLOUTPLACEHOLDER",
+        "BDLMATHPLACEHOLDER",
     ):
         if marker in text:
             raise ValueError(f"Unrestored placeholder remained in generated Markdown: {marker}")
@@ -364,7 +402,7 @@ def convert_chapter(config: ChapterConfig) -> None:
         generated,
         structures,
         footnote_structures,
-        title=display_chapter_title(config.label, config.title),
+        title=display_chapter_title(config.label, source_chapter_title(source) or config.title),
         label=config.label,
     )
     markdown = copy_and_rewrite_images(
@@ -374,6 +412,7 @@ def convert_chapter(config: ChapterConfig) -> None:
         asset_slug=config.asset_slug,
     )
 
+    markdown = "\n".join(line.rstrip() for line in markdown.split("\n"))
     config.output_path.parent.mkdir(parents=True, exist_ok=True)
     config.output_path.write_text(markdown, encoding="utf-8")
     print(f"Wrote {config.output_path}")

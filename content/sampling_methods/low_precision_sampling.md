@@ -39,7 +39,7 @@ Stochastic Gradient Langevin Dynamics (SGLD) updates the parameter in the {math}
 
 where {math}`\alpha` is the stepsize, {math}`\xi_{k+1}` is standard Gaussian noise, and the stochastic gradient {math}`\nabla\tilde U` is an unbiased estimator of {math}`\nabla U` based on a subset of the dataset {math}`\mathcal D`. The use of stochastic gradients helps reduce the computational cost. Compared to the Stochastic Gradient Descent (SGD) update, the only difference is that SGLD adds an additional Gaussian perturbation at each step, enabling SGLD to characterize the full distribution rather than converge to a single point. Due to this close connection, it is convenient to implement SGLD on existing deep learning tasks for which SGD is the default learning algorithm.
 
-Stochastic Gradient HMC {cite:p}`chen2014stochastic` is derived by replacing {math}`\nabla U` with a noisy gradient {math}`\nabla \tilde U+\xi` in the Hamiltonian Monte Carlo, and boils down to the unadjusted underdamped Langevin algorithm with stochastic gradient, where the underdamped Langevin dynamics can be defined as
+Stochastic Gradient HMC [SGHMC, @chen2014stochastic] is derived by replacing {math}`\nabla U` with a noisy gradient {math}`\nabla \tilde U+\xi` in the Hamiltonian Monte Carlo, and boils down to the unadjusted underdamped Langevin algorithm with stochastic gradient, where the underdamped Langevin dynamics can be defined as
 
 ```{math}
 :label: ch5:eq:underdamped
@@ -47,7 +47,7 @@ Stochastic Gradient HMC {cite:p}`chen2014stochastic` is derived by replacing {
 \begin{split}
        \,\mathrm{d} v_t &= -\gamma v_t \,\mathrm{d} t - u \nabla U(\theta_t) \,\mathrm{d} t + \sqrt{2\gamma u} \,\mathrm{d} \mathbf{B}_t \\
      \,\mathrm{d} \theta_t &= v_t\,\mathrm{d} t,
-    
+
 \end{split}
 ```
 
@@ -146,7 +146,7 @@ To facilitate the theoretical analysis, we assume that the target distribution i
       \end{split}
 ```
 
-These assumptions are commonly used in the literature {cite:p}`dalalyan2019user,yang2019swalp,zhang2022low,wang2023enhancing`.
+These assumptions are commonly used in the literature [e.g., @dalalyan2019user; @yang2019swalp; @zhang2022low; @wang2023enhancing].
 
 :::{prf:theorem}
 :label: ch5:thm:highacc
@@ -242,7 +242,7 @@ which shares the same mean as {math}`\theta_{k+1}` in full-precision. But on the
 
 ```{math}
 \begin{align*}
-    &\mbox{Var}(\theta_{k+1,i})\\ 
+    &\mbox{Var}(\theta_{k+1,i})\\
     &=\mathbb{E}\left[\mbox{Var}\left[Q_W\left(\theta_{k,i} - \alpha \nabla U(\theta_{k})_i + \sqrt{2\alpha }\xi_{k+1,i}\right)\middle|\xi_{k+1,i}\right]\right]\\
     &\hspace{0em}+ \mbox{Var}\left[\mathbb{E}\left[Q_W\left(\theta_{k,i} - \alpha \nabla U(\theta_{k})_i + \sqrt{2\alpha }\xi_{k+1,i}\right)\middle|\xi_{k+1,i}\right]\right]\\
     &=\frac{ \Delta_W^2}{4} \chi_{k+1,i} + 2\alpha,
@@ -260,7 +260,7 @@ To correct the inflated variance and enable SGLD with low-precision gradient acc
 \text{Cat}(\mu,v)=
 \begin{cases}
       \Delta_W, &  w.p.  \frac{v+\mu^2+\mu\Delta_W}{2\Delta_W^2}\\
-      -\Delta_W, & w.p.  \frac{v+\mu^2-\mu\Delta_W}{2\Delta_W^2} \text{\hspace{1em} }\\ 
+      -\Delta_W, & w.p.  \frac{v+\mu^2-\mu\Delta_W}{2\Delta_W^2} \text{\hspace{1em} }\\
       0, & \text{otherwise}
     \end{cases}
 \end{align}
@@ -311,7 +311,7 @@ We run VC SGLDLP-L as in [](#ch5:alg:vcsgld). Besides the same assumptions in []
 
 ```{math}
 \begin{align*}
-    W_2(\mu_K, \pi)&\le (1-\alpha m)^KW_2(\mu_0, \pi) + 1.65 (M/m)(\alpha P)^{1/2} \\&\hspace{-4em}+ \min\left( \frac{\Psi A}{m}, \frac{M\sqrt{A}}{m} \right) 
+    W_2(\mu_K, \pi)&\le (1-\alpha m)^KW_2(\mu_0, \pi) + 1.65 (M/m)(\alpha P)^{1/2} \\&\hspace{-4em}+ \min\left( \frac{\Psi A}{m}, \frac{M\sqrt{A}}{m} \right)
     + \sqrt{\frac{\alpha \Delta_G^2 P +  4\alpha \kappa^2}{4m} + \frac{A}{\alpha m}} + \left((1-\alpha m)^K+1\right)\sqrt{A},
 \end{align*}
 ```
@@ -529,7 +529,7 @@ This process seems trivial, but there are multiple factors that need to be consi
 +++
 Sample thinning refers to the selection of a subset from the original posterior samples. That is, only a proportion of samples will be quantized and used for low-precision Bayesian model average-based inferences, for the sake of computational efficiency. One would also avoid samples from the burn-in period of posterior sampling to reduce the sampling bias. One common way is to include one sample every other {math}`f` samples (where {math}`f` denotes the thinning frequency), skipping the first {math}`b` samples (where {math}`b` denotes the burn-in period length).
 
-To determine the best thinned sample set, one needs to assess the quality of the samples, say how well the empirical distribution determined by this sample set resembles the true posterior distribution. To this end, we employ the Kernel Stein Discrepancy {cite:p}`gorham2017measuring`. KSD is a distance measure between two distributions, where the target distribution is continuously differentiable with an intractable normalization constant. Given a kernel function {math}`k(\cdot,\cdot)`, we define the *Stein Kernel* as
+To determine the best thinned sample set, one needs to assess the quality of the samples, say how well the empirical distribution determined by this sample set resembles the true posterior distribution. To this end, we employ the Kernel Stein Discrepancy [KSD, @gorham2017measuring]. KSD is a distance measure between two distributions, where the target distribution is continuously differentiable with an intractable normalization constant. Given a kernel function {math}`k(\cdot,\cdot)`, we define the *Stein Kernel* as
 
 ```{math}
 \begin{split}
@@ -592,7 +592,7 @@ Given a pre-trained DNN model {math}`\theta`, a straightforward method is to imp
 q(\theta) = \prod_{i=1}^P \sum_{m=1}^M p_{im}\mathbf{1}(\theta_{(i)}=q_m), \quad \theta=(\theta_{(1)},\dots,\theta_{(P)})
 ```
 
-where variational parameters satisfy {math}`\sum_m p_{im}=1`. To facilitate the training of variational inference, we can introduce parametric modelling for {math}`p_{im}` (e.g., {math}`p_{im}` relates to {math}`|\theta_{(i)}-q_m|`, where {math}`\theta_{(i)}` is the pre-trained weight). To enhance the model performance, we can also allow {math}`q_1,\dots, q_M` to update in the variational training procedure {cite:p}`dong2022finding`.
+where variational parameters satisfy {math}`\sum_m p_{im}=1`. To facilitate the training of variational inference, we can introduce parametric modelling for {math}`p_{im}` (e.g., {math}`p_{im}` relates to {math}`|\theta_{(i)}-q_m|`, where {math}`\theta_{(i)}` is the pre-trained weight). To enhance the model performance, we can also allow {math}`q_1,\dots, q_M` to update in the variational training procedure [see e.g., @dong2022finding].
 
 It is worth mentioning that no actual low-precision sampling happens in the variational training process since variational inference boils down to an optimization problem for the variational parameters. Once these parameters are learned, the (approximate) posterior samples are easily drawn from [](#ch5:eq:sub).
 

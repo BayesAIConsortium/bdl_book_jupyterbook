@@ -41,18 +41,23 @@ Run the complete set of currently integrated conversions with:
 bash scripts/run_conversions.sh
 ```
 
+The skeleton generator maintains linked chapter lists on all ten part overview pages. Chapter numbers follow the order in the LaTeX book, continuing across parts. Lists are refreshed on each run while authored overview text is preserved; chapters not yet migrated link to their existing placeholder pages.
+
 The top-level runner first refreshes the generated book skeleton, then delegates to smaller book-wide groups:
 
 ```bash
 bash scripts/run_frontmatter_conversions.sh
 bash scripts/run_part1_conversions.sh
+bash scripts/run_part2_conversions.sh
 ```
+
+`run_part2_conversions.sh` currently converts Chapter 7, the introduction to Laplace approximations. To regenerate it alone, run `uv run python scripts/convert_laplace_intro.py`. Callouts become native MyST admonitions; aligned subequations become separate auto-numbered math directives preserving each row label. Project math macros live in `content/myst.yml`.
 
 `run_frontmatter_conversions.sh` converts the migrated front matter. `run_part1_conversions.sh` converts all six sampling chapters, from *Introduction to sampling* through *Discrete sampling*. As more chapters are migrated, their converters should be added to the corresponding part runner; new part runners can then be called from `run_conversions.sh`. Shared TeX-to-MyST behavior belongs in reusable modules such as `latex_normalize.py` and `myst_structures.py`, rather than in chapter-specific patches whenever possible.
 
 To regenerate Chapter 6 alone, run `uv run python scripts/convert_discrete_sampling.py` from the repository root. Figure copying automatically prefers matching SVG, PNG, or other web images over the source PDF. Section references use MyST's native `{name}` substitution, so links to headings in other chapters display their current titles automatically.
 
-Editorial chapter titles can be set in `CHAPTER_TITLE_OVERRIDES` in `scripts/common.py`, keyed by the chapter's stable label. Both the skeleton generator and chapter converters use these exact titles, keeping chapter lists, headings, and sidebar entries consistent across regeneration while preserving acronyms and proper names.
+Chapter converters read the full title from the source `\chapter[short title]{Full title}` command on every run. The optional short title does not replace the page title. Editorial chapter titles can be set in `CHAPTER_TITLE_OVERRIDES` in `scripts/common.py`, keyed by the chapter's stable label. Both the skeleton generator and chapter converters use these exact titles, keeping chapter lists, headings, and sidebar entries consistent across regeneration while preserving acronyms and proper names.
 
 ## Pull changes and preview locally
 

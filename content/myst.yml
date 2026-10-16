@@ -3,6 +3,8 @@ version: 1
 project:
   title: Handbook of Bayesian Deep Learning
   description: A collaborative handbook on Bayesian deep learning.
+  math:
+    '\regrisk': '\mathcal{L}_{\Omega}'
   bibliography:
     - ../references.bib
   toc:

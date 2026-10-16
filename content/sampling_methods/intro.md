@@ -24,16 +24,16 @@ denotes the *model evidence* of the data. Note that, in general the posterior is
 We note that the ultimate goal in solving [](#eq:bayes_sampling) is estimating the *posterior predictive* for new inputs {math}`x^*`, i.e. the pushforward of the posterior through the test likelihood:
 
 ```{math}
-p(y^* \mid x^*, \theta) \, , \quad {\rm for} \quad  
+p(y^* \mid x^*, \theta) \, , \quad {\rm for} \quad
 \theta \sim p(\theta \mid \mathcal{D}) \, .
 ```
 
 This is a distributed quantity that incorporates both *epistemic and aleatoric uncertainty* (uncertainty caused by a lack of data or knowledge, respectively), but often we content ourselves with its expectation as a point estimator {math}`\hat{p}`:
 
 ```{math}
-\hat{p}(y^* \mid x^* , \mathcal{D} ) = 
+\hat{p}(y^* \mid x^* , \mathcal{D} ) =
 \mathbb{E}_{\theta \mid \mathcal{D}}\left[ p(y^* \mid x^*, \theta) \right]  =
-\int_\Theta p(y^* \mid x^*, \theta) 
+\int_\Theta p(y^* \mid x^*, \theta)
 p(\theta \mid \mathcal{D}) \rm{d}\theta \, .
 ```
 
@@ -71,7 +71,7 @@ Using the Monte Carlo samples {math}`\{\theta_i\}_{i=1}^M` from {math}`\pi`, we 
 ```{math}
 :label: eq:mc
 
-\mathbb{E}[h(\theta)] 
+\mathbb{E}[h(\theta)]
 \approx \hat{h}_M := \frac1M \sum_{i=1}^M h(\theta_i) \, .
 ```
 
@@ -169,7 +169,7 @@ Despite its attraction of ease of implementation and simulation, the efficiency 
 The importance sampling estimator of {math}`\mathbb{E}_\pi[h(\theta)]` begins by re-writing the integral as follows
 
 ```{math}
-\int_\Theta h(\theta)\pi(\theta){\rm d}\theta = 
+\int_\Theta h(\theta)\pi(\theta){\rm d}\theta =
 \int \frac{\pi(\theta)}{q(\theta)}h(\theta)q(\theta){\rm d}\theta \, ,
 ```
 
@@ -316,8 +316,8 @@ p(\theta,\theta') = q(\theta,\theta') \times \alpha(\theta,\theta')
 It follows that
 
 ```{math}
-\begin{align}  
-\pi(\theta)p(\theta,\theta') &= \min\{\pi(\theta)q(\theta,\theta'),\pi(\theta')q(\theta',\theta)\} 
+\begin{align}
+\pi(\theta)p(\theta,\theta') &= \min\{\pi(\theta)q(\theta,\theta'),\pi(\theta')q(\theta',\theta)\}
 = \pi(\theta') p(\theta',\theta) \, ,
 \end{align}
 ```
@@ -648,8 +648,8 @@ where {math}`w_n(\theta_{1:n})` is the unnormalized weight function and in light
 ```{math}
 \begin{align}
 w_n(\theta_{1:n})  = \frac{\kappa_n(\theta_{1:n})}{q_n(\theta_{1:n})} =
-\frac{\kappa_n(\theta_n | \theta_{1:n-1})}{q_n(\theta_n | \theta_{1:n-1})} 
-w_{n-1}(\theta_{1:n-1}) 
+\frac{\kappa_n(\theta_n | \theta_{1:n-1})}{q_n(\theta_n | \theta_{1:n-1})}
+w_{n-1}(\theta_{1:n-1})
 =: \alpha(\theta_n | \theta_{1:n-1}) w_{n-1}(\theta_{1:n-1}) \, .
 \end{align}
 ```
@@ -661,7 +661,7 @@ Assume we draw, sequentially in time, {math}`M` independent samples {math}`\thet
 
 \begin{align}
 
-\widehat{Z}_n &= 
+\widehat{Z}_n &=
 \frac{1}{M} \sum_{i=1}^M w_n(\theta_{1:n}^{(i)}).
 \end{align}
 ```
@@ -671,8 +671,8 @@ A consistent self-normalized importance sampling estimator of {math}`\mathbb{E}_
 ```{math}
 :label: eq:SIS_expec
 
-\widehat{\mathbb{E}_n}(h_n) 
-=\frac{\sum_{i=1}^N  w_n(\theta_{1:n}^{(i)}) h_n(\theta_{1:n}^{(i)}) }{\sum_{i=1}^N w_n(\theta_{1:n}^{(i)})}  \nonumber 
+\widehat{\mathbb{E}_n}(h_n)
+=\frac{\sum_{i=1}^N  w_n(\theta_{1:n}^{(i)}) h_n(\theta_{1:n}^{(i)}) }{\sum_{i=1}^N w_n(\theta_{1:n}^{(i)})}  \nonumber
 = \sum_{i=1}^M W_n^{(i)} \,\, h_n(\theta_{1:n}^{(i)}) \, ,
 ```
 
@@ -729,7 +729,7 @@ As {math}`n` grows the weights will degenerate, in the sense that one will domin
 One way to mitigate this somewhat is by resampling, i.e. for {math}`i=1,\dots,M`, let
 
 ```{math}
-\theta_{1:n}^{(i)} \leftarrow \theta_{1:n}^{(j)} \, , 
+\theta_{1:n}^{(i)} \leftarrow \theta_{1:n}^{(j)} \, ,
 \quad {\rm for}\quad j \sim (W_n^{(1)},\dots,W_n^{(M)}) \, , \quad {\rm and}\quad  w_n^{(i)} \leftarrow 1/M \, .
 ```
 

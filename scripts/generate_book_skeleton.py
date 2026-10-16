@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate placeholder Part/chapter pages and the full MyST book TOC from TeX."""
+"""Generate linked part overviews, chapter placeholders, and the book TOC from TeX."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from common import display_chapter_title, tex_path
+from tex_metadata import clean_title, source_chapter_title
 
 
 TOC_BEGIN = "    # BEGIN GENERATED BOOK TOC"
@@ -35,62 +36,13 @@ class Part:
     chapters: tuple[Chapter, ...]
 
 
-def parse_braced_argument(text: str, brace_start: int) -> tuple[str, int]:
-    """Return a balanced braced argument and the index immediately after it."""
-    if brace_start >= len(text) or text[brace_start] != "{":
-        raise ValueError(f"Expected '{{' at position {brace_start}")
-
-    depth = 0
-    for pos in range(brace_start, len(text)):
-        char = text[pos]
-        escaped = pos > 0 and text[pos - 1] == "\\"
-        if char == "{" and not escaped:
-            depth += 1
-        elif char == "}" and not escaped:
-            depth -= 1
-            if depth == 0:
-                return text[brace_start + 1 : pos], pos + 1
-    raise ValueError("Unclosed braced argument")
-
-
-def command_argument(text: str, command: str) -> tuple[str, int] | None:
-    """Extract the first required argument of a LaTeX command."""
-    start = text.find(command)
-    if start < 0:
-        return None
-    pos = start + len(command)
-    while pos < len(text) and text[pos].isspace():
-        pos += 1
-    if pos < len(text) and text[pos] == "[":
-        end = text.find("]", pos + 1)
-        if end < 0:
-            raise ValueError(f"Unclosed optional argument for {command}")
-        pos = end + 1
-        while pos < len(text) and text[pos].isspace():
-            pos += 1
-    if pos >= len(text) or text[pos] != "{":
-        return None
-    return parse_braced_argument(text, pos)
-
-
-def clean_title(title: str) -> str:
-    """Apply conservative title cleanup suitable for placeholder headings."""
-    title = re.sub(r"\\texorpdfstring\{([^{}]*)\}\{([^{}]*)\}", r"\1", title)
-    title = re.sub(r"\\text(?:bf|it|tt)\{([^{}]*)\}", r"\1", title)
-    title = title.replace(r"\&", "&")
-    title = title.replace("~", " ")
-    title = re.sub(r"\s+", " ", title).strip()
-    return title
-
-
 def chapter_metadata(source: str) -> Chapter:
     path = tex_path(*source.split("/"))
     text = path.read_text(encoding="utf-8")
 
-    chapter_arg = command_argument(text, r"\chapter")
-    if chapter_arg is None:
+    raw_title = source_chapter_title(text)
+    if raw_title is None:
         raise ValueError(f"Could not find \\chapter in {path}")
-    raw_title, _ = chapter_arg
 
     labels = re.findall(r"\\label\{([^{}]+)\}", text)
     chapter_labels = [label for label in labels if label.startswith(("chap:", "cha:"))]
@@ -102,7 +54,7 @@ def chapter_metadata(source: str) -> Chapter:
     return Chapter(
         source=source,
         output=output,
-        title=display_chapter_title(chapter_labels[0], clean_title(raw_title)),
+        title=display_chapter_title(chapter_labels[0], raw_title),
         label=chapter_labels[0],
     )
 
@@ -220,15 +172,7 @@ def main() -> None:
     first_chapter = 1
 
     for part in parts:
-        if part.label == "part:sampling_methods":
-            if write_part_overview(part, first_chapter):
-                created += 1
-        elif write_placeholder(
-            part.output,
-            part.label,
-            f"Part {part.number} — {part.title}",
-            "Part",
-        ):
+        if write_part_overview(part, first_chapter):
             created += 1
         for chapter in part.chapters:
             if write_placeholder(chapter.output, chapter.label, chapter.title, "Chapter"):
