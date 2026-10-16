@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 
 from myst_structures import ExtractedStructure
+from text_normalize import normalize_tex_citation_note
 
 
 def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
@@ -22,7 +23,18 @@ def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
     def citation_with_notes(match: re.Match[str]) -> str:
         first, second, raw_keys = match.groups()
         prefix, suffix = (first, second) if second is not None else ("", first)
+        prefix = normalize_tex_citation_note(prefix)
+        suffix = normalize_tex_citation_note(suffix)
         keys = [key.strip() for key in raw_keys.split(",") if key.strip()]
+        # Citation-role bodies split on commas/semicolons, even inside affixes.
+        # Native Markdown citations safely retain punctuation within the notes.
+        if any(char in prefix + suffix for char in ",;"):
+            citation = "; ".join("@" + key for key in keys)
+            if prefix:
+                citation = prefix + " " + citation
+            if suffix:
+                citation += ", " + suffix
+            return placeholder("[" + citation + "]")
         if prefix:
             keys[0] = "{" + prefix.strip() + "}" + keys[0]
         if suffix:

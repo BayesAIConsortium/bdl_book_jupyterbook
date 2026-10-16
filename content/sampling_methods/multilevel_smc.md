@@ -72,7 +72,7 @@ Population methods such as importance sampling (IS) are able to mitigate this is
 In the Bayesian context, typically the prior {math}`p` is a suitable initial distribution. The sequence of intermediate targets can be built to gradually introduce the data, for example either from growing subsets of the data {cite:p}`chopin2002sequential` or with a tempering schedule {math}`0=\lambda_0<\lambda_1 < \dots < \lambda_T=1` {cite:p}`neal2001annealed`:
 
 ```{math}
-p_t(\theta) \propto 
+p_t(\theta) \propto
 p(Y \mid X, \theta)^{\lambda_t}\,p(\theta) \, .
 ```
 
@@ -135,7 +135,7 @@ The resulting estimator reads
 ```{math}
 :label: eq:psi_ml
 
-p_L^{ML}(\varphi) := 
+p_L^{ML}(\varphi) :=
 \frac{1}{M_0}\sum_{i=1}^{M_0}\varphi(U_0^i) +
 \sum_{l=1}^L \frac{1}{M_l}\sum_{i=1}^{M_l}\{\varphi(U_l^i)-\varphi(\tilde{U}_{l-1}^i)\}.
 ```
@@ -145,7 +145,7 @@ Using i.i.d. samples {math}`U_L^1,\dots,U_L^M` from {math}`p_L` to approximate
 ```{math}
 :label: eq:psi_iid
 
-p^{IID}_L(\varphi) := 
+p^{IID}_L(\varphi) :=
 \frac{1}{M}\sum_{i=1}^{M}\varphi(U_L^i).
 ```
 
@@ -154,7 +154,7 @@ Neither estimator carries sampling bias, and the mean square error of any unbias
 ```{math}
 :label: eq:MSE
 
-\mathbb{E}[(p_L^{\sf ML}(\varphi)-p(\varphi))^2] = 
+\mathbb{E}[(p_L^{\sf ML}(\varphi)-p(\varphi))^2] =
 \underbrace{\operatorname{Var}[p_L^{ML}(\varphi)]}_{\sf variance} +
 \underbrace{[p_L-p](\varphi)^2}_{{\sf bias}^2} \, ,
 ```
@@ -272,7 +272,7 @@ Define the element-wise activation function as {math}`\sigma`. Let {math}`\maths
 \begin{align}\nonumber
 g_0(x,\theta) & := & A_1x + b_1,\\ \nonumber
 g_{L'}(x,\theta) & := & A_{L'}\sigma
-(g_{L'-1}(x)) + b_{L'}\, , 
+(g_{L'-1}(x)) + b_{L'}\, ,
 \qquad L' \in\{1,\dots L-1\}, \\
 
 f(x,\theta) &:=&  A_L\sigma
@@ -296,7 +296,7 @@ These priors were introduced to mimic Gaussian measure priors {math}`p \sim \mat
 f_{\sf KL} = \sum_{j \in \mathbb{Z}^+} \sqrt{\lambda_j} \iota_j \Phi_j, \qquad \iota_j \sim \mathcal{N}(0,1),
 ```
 
-with {math}`(\lambda_j,\Phi_j)_{j \in \mathbb{Z}^+}` the eigenpairs of the covariance operator {math}`\mathcal{C}` and {math}`\{\iota_j\}_{j \in \mathbb{Z}^+}` Gaussian white noise; see {cite:t}`lord2014introduction` for the derivation of [](#eq:kle) and its use in stochastic numerics. Priors built from [](#eq:kle) scale poorly with input dimension, however, and this shortcoming was the original motivation for TNN priors, in which the weight and bias variances are collected in a trace-class diagonal covariance operator {math}`\mathcal{C}`. See {cite:p}`sell2023trace`. More precisely, the TNN prior is given by
+with {math}`(\lambda_j,\Phi_j)_{j \in \mathbb{Z}^+}` the eigenpairs of the covariance operator {math}`\mathcal{C}` and {math}`\{\iota_j\}_{j \in \mathbb{Z}^+}` Gaussian white noise; see {cite:t}`lord2014introduction` for the derivation of [](#eq:kle) and its use in stochastic numerics. Priors built from [](#eq:kle) scale poorly with input dimension, however, and this shortcoming was the original motivation for TNN priors, in which the weight and bias variances are collected in a trace-class diagonal covariance operator {math}`\mathcal{C}`. See {cite:p}`sell2023trace{Theorem 1}`. More precisely, the TNN prior is given by
 
 ```{math}
 :label: eq:tnn
@@ -318,7 +318,7 @@ Assume that for all {math}`z\in \mathbb{R}`, {math}`|\sigma(z)| \leq |z|`. Then 
 ```{math}
 :label: eq:tnnconv
 
-\mathbb{E}\left[| f_l(x, \theta_l)  - f(x,\theta) |^2\right] 
+\mathbb{E}\left[| f_l(x, \theta_l)  - f(x,\theta) |^2\right]
 \leq K 2^{-(2s-1) l} \, .
 ```
 :::
@@ -334,8 +334,8 @@ The remaining architectural freedom is the hidden-layer widths {math}`D_{L'}`, {
 :label: eq:bnn_approx
 
 \pi_l(\theta_l)
-:= p_l (\theta_l | \mathcal{D}) \propto 
-p_l(Y|\theta_l,X)p_{l}(\theta_l) 
+:= p_l (\theta_l | \mathcal{D}) \propto
+p_l(Y|\theta_l,X)p_{l}(\theta_l)
 =: \kappa_l(\theta_l) \, .
 ```
 
@@ -394,7 +394,7 @@ The sampler below produces particle approximations of these densities, and there
 ```{math}
 :label: eq:eta_empirical
 
-\eta_l^{M}(\varphi_l) := \frac{1}{M}\sum_{i=1}^{M}\varphi_l(\theta_l^i) \, 
+\eta_l^{M}(\varphi_l) := \frac{1}{M}\sum_{i=1}^{M}\varphi_l(\theta_l^i) \,
 {\rightarrow} \, \eta_l(\varphi_l) \, \quad {\sf a.s.}
 ```
 
@@ -412,7 +412,7 @@ The sampler below produces particle approximations of these densities, and there
     1. **For** {math}`i = 1` to {math}`M_{l+1}`:
         1. sample {math}`\theta_{l+1}^i \mid \theta_{l}^1,\dots,\theta_{l}^{M_{l}}` independently using
         $$
-\sum_{j=1}^{M_{l}} 
+\sum_{j=1}^{M_{l}}
         \frac{G_{l}(\theta_{l}^j)}
              {\sum_{s=1}^{M_{l}} G_{l}(\theta_{l}^s)}
         \mathcal{M}_l(\theta_{l}^j, d\theta_{l+1})
@@ -440,7 +440,7 @@ Note that {math}`\eta_{l}^{M_{l}}(f_{l-1})` will converge in probability (as {ma
 and {math}`\eta_{l}^{M_{l}}(G_{l}f_l)` converges to
 
 ```{math}
-\int_{\Theta_l}\pi_{l-1}(\theta_{l-1})q_l(\delta_l|\theta_{l-1})\frac{\kappa_{l}(\theta_l)}{\kappa_{l-1}(\theta_{l-1})q_l(\delta_l|\theta_{l-1})}f_l(x,\theta_l)d\theta_l 
+\int_{\Theta_l}\pi_{l-1}(\theta_{l-1})q_l(\delta_l|\theta_{l-1})\frac{\kappa_{l}(\theta_l)}{\kappa_{l-1}(\theta_{l-1})q_l(\delta_l|\theta_{l-1})}f_l(x,\theta_l)d\theta_l
 =
 \frac{1}{Z_{l-1}}\int_{\Theta_l}\kappa_{l}(\theta_l)f_l(x,\theta_l)d\theta_l \, .
 ```
@@ -466,7 +466,7 @@ p_l(\theta_l) = p_{l-1}(\theta_{l-1})q_l(\delta_l|\theta_{l-1}).
 This means that
 
 ```{math}
-G_{l}(\theta_{l}) = 
+G_{l}(\theta_{l}) =
 \frac{p_l(Y|\theta_l,X)}
 {p_{l-1}(Y|\theta_{l-1},X)}.
 ```
@@ -550,7 +550,7 @@ Beyond this, one can run several SMC samplers at once and combine them, as studi
 ```{math}
 :label: eq:est_psmc
 
-\hat{\varphi}_{\text{SMC$_\parallel$}}  
+\hat{\varphi}_{\text{SMC$_\parallel$}}
         = \sum_{r=1}^{R} \omega_r \pi^{M,r}(\varphi) \, , \quad \omega_r = \frac{Z^{M,r}}{\sum_{s=1}^{R} Z^{M,s}} \, .
 ```
 

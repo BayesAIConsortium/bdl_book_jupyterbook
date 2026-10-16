@@ -47,3 +47,12 @@ def normalize_tex_text_accents(text: str) -> str:
         return TEX_TEXT_ACCENTS.get(accent, {}).get(letter, match.group(0))
 
     return _ACCENT_PATTERN.sub(replace_accent, text)
+
+
+
+def normalize_tex_citation_note(text: str) -> str:
+    r"""Convert TeX prose spacing and accents in citation pre/postnotes."""
+    text = normalize_tex_text_accents(text)
+    text = re.sub(r"(?<!\\)~|\\(?:[,;: ]|qquad\b|quad\b|space\b)", " ", text)
+    text = text.replace(r"\!", "")
+    return re.sub(r"\s+", " ", text).strip()

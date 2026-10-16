@@ -273,7 +273,7 @@ where {math}`\hat{\pi}(y=1 \mid \theta, x)` is a classifier, with {math}`\hat{\p
     D_{KL}\left(\pi(y \mid \theta, x)\middle\|\hat{\pi}(y \mid \theta, x)\right)
     &= \iint \pi(\theta, x) \sum_{y \in \{0, 1\}} \pi(y \mid \theta, x)
     \log \frac{\pi(y \mid \theta, x)}{\hat{\pi}(y \mid \theta, x)} \, \mathrm{d}x \, \mathrm{d}\theta.
-    
+
 \end{align}
 ```
 
@@ -344,8 +344,8 @@ One sampling method that can be more robust to high dimensionality and approxima
 
 ```{math}
 \begin{aligned}
-    \alpha(\theta' \mid \theta, x_o) 
-    &\coloneqq \min\left(1, \frac{\hat{p}(\theta' \mid x_o)}{\hat{p}(\theta \mid x_o)} \frac{\mathcal{T}(\theta \mid \theta')}{\mathcal{T}(\theta' \mid \theta)} \right) 
+    \alpha(\theta' \mid \theta, x_o)
+    &\coloneqq \min\left(1, \frac{\hat{p}(\theta' \mid x_o)}{\hat{p}(\theta \mid x_o)} \frac{\mathcal{T}(\theta \mid \theta')}{\mathcal{T}(\theta' \mid \theta)} \right)
     = \min\left(1, \frac{\hat{p}'(\theta' \mid x_o)/\cancel{Z_{\psi}(x_o)}}{\hat{p}'(\theta \mid x_o)/\cancel{Z_{\psi}(x_o)}} \frac{\mathcal{T}(\theta \mid \theta')}{\mathcal{T}(\theta' \mid \theta)} \right)
 \end{aligned}
 ```
