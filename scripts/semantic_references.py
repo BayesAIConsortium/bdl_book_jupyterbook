@@ -17,6 +17,24 @@ def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
         structures.append(ExtractedStructure(token, markdown))
         return token
 
+    # Preserve Natbib pre/postnotes using native MyST citation affixes. The
+    # TeX-to-Markdown exporter otherwise discards optional citation arguments.
+    def citation_with_notes(match: re.Match[str]) -> str:
+        first, second, raw_keys = match.groups()
+        prefix, suffix = (first, second) if second is not None else ("", first)
+        keys = [key.strip() for key in raw_keys.split(",") if key.strip()]
+        if prefix:
+            keys[0] = "{" + prefix.strip() + "}" + keys[0]
+        if suffix:
+            keys[-1] += "{" + suffix.strip() + "}"
+        return placeholder("{cite:p}`" + ",".join(keys) + "`")
+
+    text = re.sub(
+        r"\\citep\[([^\]]*)\](?:\[([^\]]*)\])?\{([^{}]+)\}",
+        citation_with_notes,
+        text,
+    )
+
     # When the source explicitly supplies the semantic word, preserve it. This
     # covers both \eqref and \ref while letting MyST supply the equation number.
     text = re.sub(

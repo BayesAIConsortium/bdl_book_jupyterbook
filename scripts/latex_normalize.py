@@ -210,6 +210,21 @@ def _normalize_em_declarations(text: str, *, inside_emphasis: bool = False) -> s
     return "".join(pieces)
 
 
+def flatten_nested_emphasis(text: str, *, inside_emphasis: bool = False) -> str:
+    r"""Flatten nested italic commands before MyST emits Markdown delimiters."""
+    pattern = re.compile(r"\\(?:emph|textit)\s*\{")
+    pieces: list[str] = []
+    pos = 0
+    while match := pattern.search(text, pos):
+        body, end = _parse_braced(text, match.end() - 1)
+        body = flatten_nested_emphasis(body, inside_emphasis=True)
+        pieces.append(text[pos:match.start()])
+        pieces.append(body if inside_emphasis else match.group(0) + body + "}")
+        pos = end
+    pieces.append(text[pos:])
+    return "".join(pieces)
+
+
 def _strip_grouped_color(text: str) -> str:
     r"""Remove ``{\color{...} ...}`` styling while preserving the group body.
 
@@ -448,7 +463,7 @@ def normalize_typography(text: str) -> str:
     text = _normalize_em_declarations(text)
     text = _replace_group_declaration(text, r"\bf", lambda body: rf"\textbf{{{body}}}")
     text = _replace_group_declaration(text, r"\it", lambda body: rf"\textit{{{body}}}")
-    return text
+    return flatten_nested_emphasis(text)
 
 
 def normalize_latex(text: str) -> str:
