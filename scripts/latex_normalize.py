@@ -15,6 +15,8 @@ from text_normalize import normalize_tex_text_accents
 
 
 COMPOUND_REPLACEMENTS: tuple[tuple[str, str], ...] = (
+    # The dataset macro is mathematical even inside a TeX text subscript.
+    (r"\text{\traindata}", r"{\mathcal{D}}"),
     (r"\network(\inputs,\params)", r"f(x,\theta)"),
 )
 

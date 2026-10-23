@@ -332,7 +332,50 @@ def _figure_images(body: str) -> list[tuple[str, int | None]]:
     return [(m.group(2), _tex_width_to_percent(m.group(1))) for m in pattern.finditer(body)]
 
 
+def _subfigures_to_myst(body: str) -> str:
+    """Keep panel and parent metadata separate using native MyST subfigures."""
+    panels: list[tuple[str, str | None, str]] = []
+    pattern = re.compile(
+        r"\\begin\{subfigure\}(?:\[[^\]]*\])?\s*(.*?)\\end\{subfigure\}",
+        re.DOTALL,
+    )
+
+    def extract(match: re.Match[str]) -> str:
+        _, start = parse_braced(match.group(1), 0)  # TeX panel width.
+        panel = match.group(1)[start:]
+        images = _figure_images(panel)
+        if len(images) != 1:
+            raise ValueError("Expected one image in each subfigure")
+        label = re.search(r"\\label\{([^{}]+)\}", panel)
+        caption = re.search(r"\\caption\s*\{", panel)
+        title = _clean_inline_tex(parse_braced(panel, caption.end() - 1)[0]) if caption else ""
+        panels.append((images[0][0], label.group(1) if label else None, title))
+        return ""
+
+    parent = pattern.sub(extract, body)
+    if not panels:
+        raise ValueError("Could not extract subfigure panels")
+    label = re.search(r"\\label\{([^{}]+)\}", parent)
+    caption = re.search(r"\\caption\s*\{", parent)
+    title = _clean_inline_tex(parse_braced(parent, caption.end() - 1)[0]) if caption else ""
+    lines = [":::{figure}"]
+    if label:
+        lines.append(f":label: {label.group(1)}")
+    lines.extend([":class: grid grid-cols-2 items-end gap-4", ""])
+    for image, panel_label, panel_title in panels:
+        if panel_label:
+            lines.append(f"({panel_label})=")
+        # Image alt text becomes the native subfigure caption.
+        lines.extend([f"![{panel_title}]({image})", ""])
+    if title:
+        lines.append(title)
+    lines.append(":::")
+    return "\n".join(lines)
+
+
 def figure_to_myst(body: str) -> str:
+    if r"\begin{subfigure}" in body:
+        return _subfigures_to_myst(body)
     label_match = re.search(r"\\label\{([^{}]+)\}", body)
     caption_pos = body.find(r"\caption")
     caption = ""

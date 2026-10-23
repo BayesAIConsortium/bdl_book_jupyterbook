@@ -21,11 +21,18 @@ def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
     # Preserve Natbib pre/postnotes using native MyST citation affixes. The
     # TeX-to-Markdown exporter otherwise discards optional citation arguments.
     def citation_with_notes(match: re.Match[str]) -> str:
-        first, second, raw_keys = match.groups()
+        kind, first, second, raw_keys = match.groups()
         prefix, suffix = (first, second) if second is not None else ("", first)
         prefix = normalize_tex_citation_note(prefix)
         suffix = normalize_tex_citation_note(suffix)
         keys = [key.strip() for key in raw_keys.split(",") if key.strip()]
+        if kind == "t":
+            citation = "; ".join("@" + key for key in keys)
+            if prefix:
+                citation = prefix + " " + citation
+            if suffix:
+                citation += " [" + suffix + "]"
+            return placeholder(citation)
         # Citation-role bodies split on commas/semicolons, even inside affixes.
         # Native Markdown citations safely retain punctuation within the notes.
         if any(char in prefix + suffix for char in ",;"):
@@ -42,7 +49,7 @@ def extract_references(text: str) -> tuple[str, list[ExtractedStructure]]:
         return placeholder("{cite:p}`" + ",".join(keys) + "`")
 
     text = re.sub(
-        r"\\citep\[([^\]]*)\](?:\[([^\]]*)\])?\{([^{}]+)\}",
+        r"\\cite([pt])\[([^\]]*)\](?:\[([^\]]*)\])?\{([^{}]+)\}",
         citation_with_notes,
         text,
     )

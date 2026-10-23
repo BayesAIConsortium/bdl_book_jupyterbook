@@ -34,7 +34,7 @@ from myst_structures import (
 )
 from proof_structures import ProofStructure, extract_proof_environments, proof_directive
 from semantic_references import extract_references
-from table_structures import extract_metric_tables
+from table_structures import extract_booktabs_tables, extract_metric_tables
 from tex_metadata import source_chapter_title
 
 
@@ -80,6 +80,9 @@ def prepare_latex(
 
     text, table_structures = extract_metric_tables(text)
     structures.extend(table_structures)
+
+    text, booktabs = extract_booktabs_tables(text)
+    structures.extend(booktabs)
 
     text, math_structures = extract_subequations(text)
     structures.extend(math_structures)
@@ -211,7 +214,8 @@ def _is_block_structure(structure: ExtractedStructure) -> bool:
     return structure.placeholder.startswith(
         (
             "BDLALGORITHMPLACEHOLDER", "BDLFIGUREPLACEHOLDER",
-            "BDLTABLEPLACEHOLDER", "BDLHEADINGPLACEHOLDER", "BDLMATHPLACEHOLDER",
+            "BDLTABLEPLACEHOLDER", "BDLBOOKTABSTABLEPLACEHOLDER",
+            "BDLHEADINGPLACEHOLDER", "BDLMATHPLACEHOLDER",
         )
     )
 
@@ -338,6 +342,7 @@ def clean_generated_markdown(
         "BDLFIGUREPLACEHOLDER",
         "BDLFOOTNOTEPLACEHOLDER",
         "BDLTABLEPLACEHOLDER",
+        "BDLBOOKTABSTABLEPLACEHOLDER",
         "BDLHEADINGPLACEHOLDER",
         "BDLCALLOUTPLACEHOLDER",
         "BDLMATHPLACEHOLDER",

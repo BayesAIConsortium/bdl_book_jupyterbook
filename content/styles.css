@@ -1,0 +1,4 @@
+/* Keep the shared caption beneath both columns of native MyST subfigures. */
+figure.fig-figure.grid.grid-cols-2 > figcaption {
+  grid-column: 1 / -1;
+}
