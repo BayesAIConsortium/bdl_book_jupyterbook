@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass
 
 from latex_normalize import normalize_notation
-
+from myst_structures import parse_braced
 
 PROOF_KINDS = (
     "example",
@@ -34,6 +34,14 @@ class ProofStructure:
 
 def _clean_title(text: str) -> str:
     """Convert conservative inline TeX used in theorem titles to MyST Markdown."""
+    text = text.strip()
+    # Optional theorem titles may be wrapped in a TeX scoping group. Remove
+    # only a balanced group around the entire title, keeping inner math intact.
+    while text.startswith("{"):
+        inner, end = parse_braced(text, 0)
+        if end != len(text):
+            break
+        text = inner.strip()
     text = normalize_notation(text)
     text = re.sub(
         r"\\(?:cite|citep)\{([^{}]+)\}",
