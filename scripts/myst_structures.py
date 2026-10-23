@@ -288,7 +288,7 @@ def _extract_balanced_command(text: str, command: str) -> tuple[str | None, str]
 def algorithm_to_myst(body: str) -> str:
     raw_caption, body = _extract_balanced_command(body, r"\caption")
     label_match = re.search(r"\\label\{([^{}]+)\}", body)
-    caption = _clean_inline_tex(raw_caption) if raw_caption is not None else "Algorithm"
+    caption = _clean_figure_caption(raw_caption) if raw_caption is not None else "Algorithm"
     label = label_match.group(1).strip() if label_match else None
     body = re.sub(r"\\label\{[^{}]+\}\s*", "", body, count=1)
     body = re.sub(r"^\s*\\SetKwInOut\{[^{}]+\}\{[^{}]+\}\s*$", "", body, flags=re.MULTILINE)
@@ -332,6 +332,20 @@ def _figure_images(body: str) -> list[tuple[str, int | None]]:
     return [(m.group(2), _tex_width_to_percent(m.group(1))) for m in pattern.finditer(body)]
 
 
+SUBFIGURE_GRID_CLASS = "grid grid-cols-2 items-end gap-4"
+
+
+def _clean_figure_caption(text: str) -> str:
+    """Use the shared native reference conversion inside extracted captions."""
+    # Local import: semantic_references uses ExtractedStructure from this module.
+    from semantic_references import extract_references
+
+    text, references = extract_references(_clean_inline_tex(text))
+    for reference in references:
+        text = text.replace(reference.placeholder, reference.markdown)
+    return text
+
+
 def _subfigures_to_myst(body: str) -> str:
     """Keep panel and parent metadata separate using native MyST subfigures."""
     panels: list[tuple[str, str | None, str]] = []
@@ -348,7 +362,7 @@ def _subfigures_to_myst(body: str) -> str:
             raise ValueError("Expected one image in each subfigure")
         label = re.search(r"\\label\{([^{}]+)\}", panel)
         caption = re.search(r"\\caption\s*\{", panel)
-        title = _clean_inline_tex(parse_braced(panel, caption.end() - 1)[0]) if caption else ""
+        title = _clean_figure_caption(parse_braced(panel, caption.end() - 1)[0]) if caption else ""
         panels.append((images[0][0], label.group(1) if label else None, title))
         return ""
 
@@ -357,11 +371,11 @@ def _subfigures_to_myst(body: str) -> str:
         raise ValueError("Could not extract subfigure panels")
     label = re.search(r"\\label\{([^{}]+)\}", parent)
     caption = re.search(r"\\caption\s*\{", parent)
-    title = _clean_inline_tex(parse_braced(parent, caption.end() - 1)[0]) if caption else ""
+    title = _clean_figure_caption(parse_braced(parent, caption.end() - 1)[0]) if caption else ""
     lines = [":::{figure}"]
     if label:
         lines.append(f":label: {label.group(1)}")
-    lines.extend([":class: grid grid-cols-2 items-end gap-4", ""])
+    lines.extend([f":class: {SUBFIGURE_GRID_CLASS}", ""])
     for image, panel_label, panel_title in panels:
         if panel_label:
             lines.append(f"({panel_label})=")
@@ -383,7 +397,7 @@ def figure_to_myst(body: str) -> str:
         brace = body.find("{", caption_pos + len(r"\caption"))
         if brace >= 0:
             raw_caption, _ = parse_braced(body, brace)
-            caption = _clean_inline_tex(raw_caption)
+            caption = _clean_figure_caption(raw_caption)
     images = _figure_images(body)
     if not images:
         return ""
@@ -400,12 +414,24 @@ def figure_to_myst(body: str) -> str:
             lines.extend(["", caption])
         lines.append(":::")
         return "\n".join(lines)
+    # Equal-width images that fit on one TeX line use the same native grid
+    # as explicit subfigures. Leave vertically arranged figures unchanged.
+    before_caption = body[:caption_pos] if caption_pos >= 0 else body
+    side_by_side = (
+        len(images) == 2
+        and images[0][1] == images[1][1]
+        and images[0][1] is not None
+        and images[0][1] <= 50
+        and re.search(r"\\\\|\\(?:newline|par)\b", before_caption) is None
+    )
     lines = [":::{figure}"]
     if label:
         lines.append(f":label: {label}")
+    if side_by_side:
+        lines.append(f":class: {SUBFIGURE_GRID_CLASS}")
     lines.append("")
     for image, width in images:
-        if width:
+        if width and not side_by_side:
             lines.extend([f"```{{image}} {image}", f":width: {width}%", "```", ""])
         else:
             lines.extend([f"![]({image})", ""])
