@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass
 
 from latex_normalize import normalize_latex
+from semantic_references import extract_references
 
 
 @dataclass(frozen=True)
@@ -43,6 +44,7 @@ def _citation_keys(raw: str) -> list[str]:
 def _clean_body(text: str) -> str:
     """Convert the conservative inline TeX subset used in book footnotes."""
     text = normalize_latex(text)
+    text, references = extract_references(text)
     text = re.sub(
         r"\\(?:cite|citep)\{([^{}]+)\}",
         lambda match: "[" + "; ".join(
@@ -68,6 +70,8 @@ def _clean_body(text: str) -> str:
     text = text.replace("~", " ")
     text = text.replace("---", "—")
     text = text.replace("--", "–")
+    for reference in references:
+        text = text.replace(reference.placeholder, reference.markdown)
     return re.sub(r"\s+", " ", text).strip()
 
 

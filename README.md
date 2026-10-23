@@ -51,7 +51,7 @@ bash scripts/run_part1_conversions.sh
 bash scripts/run_part2_conversions.sh
 ```
 
-`run_part2_conversions.sh` currently converts Chapter 7, the introduction to Laplace approximations. To regenerate it alone, run `uv run python scripts/convert_laplace_intro.py`. Callouts become native MyST admonitions; aligned subequations become separate auto-numbered math directives preserving each row label. Project math macros live in `content/myst.yml`.
+`run_part2_conversions.sh` currently converts Chapters 7 and 8, the introduction to Laplace approximations and linearised Laplace approximations. To regenerate either alone, run `uv run python scripts/convert_laplace_intro.py` or `uv run python scripts/convert_laplace_linearized.py`. Native MyST subfigures preserve the panel labels and use a two-column grid; simple booktabs tables retain their header row. A small stylesheet in `content/styles.css`, loaded through MyST's native `site.options.style`, keeps shared subfigure captions across the full grid width. Callouts become native MyST admonitions; aligned subequations become separate auto-numbered math directives preserving each row label. Project math macros live in `content/myst.yml`.
 
 `run_frontmatter_conversions.sh` converts the migrated front matter. `run_part1_conversions.sh` converts all six sampling chapters, from *Introduction to sampling* through *Discrete sampling*. As more chapters are migrated, their converters should be added to the corresponding part runner; new part runners can then be called from `run_conversions.sh`. Shared TeX-to-MyST behavior belongs in reusable modules such as `latex_normalize.py` and `myst_structures.py`, rather than in chapter-specific patches whenever possible.
 

@@ -5,6 +5,12 @@ project:
   description: A collaborative handbook on Bayesian deep learning.
   math:
     '\regrisk': '\mathcal{L}_{\Omega}'
+    '\jaclogit': 'J_{\theta} f'
+    '\precision': '\Psi'
+    '\ggn': 'G'
+    '\fisher': 'F'
+    '\GP': '\mathcal{GP}'
+    '\ShanEntSymb': '\operatorname{H}'
   bibliography:
     - ../references.bib
   toc:
@@ -101,3 +107,4 @@ site:
   options:
     logo_text: Handbook of Bayesian Deep Learning
     folders: true
+    style: ./styles.css
