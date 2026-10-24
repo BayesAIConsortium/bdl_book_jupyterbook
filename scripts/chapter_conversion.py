@@ -51,10 +51,13 @@ class ChapterConfig:
     input_path: Path
     output_path: Path
     asset_slug: str
+    default_multi_image_width: int | None = None
 
 
 def prepare_latex(
     text: str,
+    *,
+    default_multi_image_width: int | None = None,
 ) -> tuple[
     str,
     list[ExtractedStructure],
@@ -75,7 +78,9 @@ def prepare_latex(
     # split points so their placeholders are never sent through MyST.
     text, structures = extract_algorithms(text)
 
-    text, figure_structures = extract_figures(text)
+    text, figure_structures = extract_figures(
+        text, default_multi_image_width=default_multi_image_width
+    )
     structures.extend(figure_structures)
 
     text, table_structures = extract_metric_tables(text)
@@ -400,7 +405,9 @@ def copy_and_rewrite_images(
 def convert_chapter(config: ChapterConfig) -> None:
     """Run the complete shared TeX-to-MyST conversion pipeline for one chapter."""
     source = config.input_path.read_text(encoding="utf-8")
-    normalized, structures, proof_structures, footnote_structures = prepare_latex(source)
+    normalized, structures, proof_structures, footnote_structures = prepare_latex(
+        source, default_multi_image_width=config.default_multi_image_width
+    )
     generated = run_myst_with_structures(normalized, structures, proof_structures)
 
     markdown = clean_generated_markdown(
