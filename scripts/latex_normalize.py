@@ -13,7 +13,6 @@ from collections.abc import Callable
 
 from text_normalize import normalize_tex_text_accents
 
-
 COMPOUND_REPLACEMENTS: tuple[tuple[str, str], ...] = (
     # The dataset macro is mathematical even inside a TeX text subscript.
     (r"\text{\traindata}", r"{\mathcal{D}}"),
@@ -271,19 +270,57 @@ def normalize_indicator(text: str) -> str:
     return re.sub(r"\\Ind\b", r"\\mathbb{1}", text)
 
 
+def _parse_expectation_argument(text: str, start: int) -> tuple[str, int]:
+    """Read a balanced optional argument, including nested expectations."""
+    depth = 1
+    braces = 0
+    pos = start + 1
+    while pos < len(text):
+        if text[pos] == "\\":
+            # Escaped delimiters do not end an optional argument.
+            command = re.match(r"\\(?:[A-Za-z]+|.)", text[pos:])
+            if command:
+                pos += command.end()
+                continue
+        char = text[pos]
+        if char == "{":
+            braces += 1
+        elif char == "}":
+            braces -= 1
+        elif braces == 0:
+            if char == "[":
+                depth += 1
+            elif char == "]":
+                depth -= 1
+                if depth == 0:
+                    return text[start + 1:pos], pos + 1
+        pos += 1
+    raise ValueError("Unclosed optional argument for expectation macro")
+
+
 def normalize_expectation(text: str) -> str:
-    r"""Expand the book's ``\E`` macro, including its optional arguments."""
-    text = re.sub(
-        r"\\E\[([^\]]+)\]\[([^\]]+)\]",
-        lambda match: rf"\mathbb{{E}}_{{{match.group(1)}}}\left[{match.group(2)}\right]",
-        text,
-    )
-    text = re.sub(
-        r"\\E\[([^\]]+)\]",
-        lambda match: rf"\mathbb{{E}}\left[{match.group(1)}\right]",
-        text,
-    )
-    return re.sub(r"\\E\b", r"\\mathbb{E}", text)
+    r"""Expand ``\E``, preserving both arguments of nested expectations."""
+    pieces: list[str] = []
+    pos = 0
+    for match in re.finditer(r"\\E\b", text):
+        if match.start() < pos:
+            continue  # Nested macros are expanded recursively in the body.
+        pieces.append(text[pos:match.start()])
+        cursor = match.end()
+        arguments: list[str] = []
+        while cursor < len(text) and text[cursor] == "[" and len(arguments) < 2:
+            argument, cursor = _parse_expectation_argument(text, cursor)
+            arguments.append(normalize_expectation(argument))
+        if len(arguments) == 2:
+            first, second = arguments
+            pieces.append(rf"\mathbb{{E}}_{{{first}}}\left[{second}\right]")
+        elif arguments:
+            pieces.append(rf"\mathbb{{E}}\left[{arguments[0]}\right]")
+        else:
+            pieces.append(r"\mathbb{E}")
+        pos = cursor
+    pieces.append(text[pos:])
+    return "".join(pieces)
 
 
 def normalize_kl(text: str) -> str:
@@ -426,6 +463,43 @@ def normalize_notation(text: str) -> str:
     return _replace_simple_math_macros(text)
 
 
+_CONTROL_SPACE_PROTECTED = re.compile(
+    r"\\begin\{(?P<env>equation\*?|align\*?|aligned|alignat\*?|gather\*?|gathered|"
+    r"multline\*?|eqnarray\*?|displaymath|math|subequations|verbatim\*?|lstlisting|minted)\}"
+    r"[\s\S]*?\\end\{(?P=env)\}"
+    r"|(?<!\\)\$\$[\s\S]*?(?<!\\)\$\$"
+    r"|(?<![\\$])\$(?!\$)[\s\S]*?(?<!\\)\$"
+    r"|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\]"
+    r"|\\verb\*?(?P<delimiter>[^\w\s])[\s\S]*?(?P=delimiter)"
+    r"|\\texttt\b|```[\s\S]*?```|`[^`\n]*`"
+    r"|(?<!\\)%[^\n]*|\\\\"
+)
+
+
+def normalize_text_control_spaces(text: str) -> str:
+    r"""Replace TeX ``\ `` with a space in prose, retaining math and literal code.
+
+    Run before extracting headings, captions and footnotes so every prose
+    context receives the same treatment. Escaped backslashes (row breaks) and
+    comments are protected too. No other TeX spacing commands are changed.
+    """
+    pieces: list[str] = []
+    pos = 0
+    while match := _CONTROL_SPACE_PROTECTED.search(text, pos):
+        pieces.append(text[pos:match.start()].replace("\\ ", " "))
+        end = match.end()
+        if match.group() == r"\texttt":
+            try:
+                _, end = _parse_braced(text, end)
+            except ValueError:
+                # Leave malformed literal code untouched for later diagnostics.
+                end = len(text)
+        pieces.append(text[match.start():end])
+        pos = end
+    pieces.append(text[pos:].replace("\\ ", " "))
+    return "".join(pieces)
+
+
 def normalize_pre_extraction(text: str) -> str:
     r"""Normalize source syntax needed before structural extraction.
 
@@ -433,6 +507,7 @@ def normalize_pre_extraction(text: str) -> str:
     TeX ``\columnwidth``. Mapping it to ``\textwidth`` lets the shared figure
     extractor preserve author-specified fractional widths consistently.
     """
+    text = normalize_text_control_spaces(text)
     return normalize_eqnarray(text.replace(r"\columnwidth", r"\textwidth"))
 
 

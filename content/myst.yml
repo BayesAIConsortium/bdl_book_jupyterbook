@@ -11,6 +11,9 @@ project:
     '\fisher': 'F'
     '\GP': '\mathcal{GP}'
     '\ShanEntSymb': '\operatorname{H}'
+    '\model': '\mathcal{M}'
+    '\emprisk': '\mathcal{\hat L}\left(#1,#2\right)'
+    '\brackets': '\left(#1\right)'
   bibliography:
     - ../references.bib
   toc:

@@ -388,7 +388,7 @@ def _subfigures_to_myst(body: str) -> str:
     return "\n".join(lines)
 
 
-def figure_to_myst(body: str) -> str:
+def figure_to_myst(body: str, *, default_multi_image_width: int | None = None) -> str:
     if r"\begin{subfigure}" in body:
         return _subfigures_to_myst(body)
     label_match = re.search(r"\\label\{([^{}]+)\}", body)
@@ -420,6 +420,7 @@ def figure_to_myst(body: str) -> str:
         lines.append(f":label: {label}")
     lines.append("")
     for image, width in images:
+        width = width or default_multi_image_width
         if width:
             lines.extend([f"```{{image}} {image}", f":width: {width}%", "```", ""])
         else:
@@ -430,7 +431,9 @@ def figure_to_myst(body: str) -> str:
     return "\n".join(lines)
 
 
-def extract_figures(text: str) -> tuple[str, list[ExtractedStructure]]:
+def extract_figures(
+    text: str, *, default_multi_image_width: int | None = None
+) -> tuple[str, list[ExtractedStructure]]:
     structures: list[ExtractedStructure] = []
     pattern = re.compile(
         r"\\begin\{figure\*?\}(?:\[[^\]]*\])?(.*?)\\end\{figure\*?\}",
@@ -438,7 +441,9 @@ def extract_figures(text: str) -> tuple[str, list[ExtractedStructure]]:
     )
 
     def replace(match: re.Match[str]) -> str:
-        markdown = figure_to_myst(match.group(1))
+        markdown = figure_to_myst(
+            match.group(1), default_multi_image_width=default_multi_image_width
+        )
         if not markdown:
             return match.group(0)
         placeholder = f"BDLFIGUREPLACEHOLDER{len(structures):04d}"
