@@ -155,13 +155,16 @@ There are thus two uses of the linearised model. First, it defines the curvature
 
 :::{figure}
 :label: fig:laplace:nonlinear-sampling-mismatch
-:class: grid grid-cols-2 items-end gap-4
 
 (fig:laplace:nonlinear-sampling-mismatch-gp)=
-![](assets/laplace_linearized/nonlinear_sampling_mismatch_gp.png)
+```{image} assets/laplace_linearized/nonlinear_sampling_mismatch_gp.png
+:width: 45%
+```
 
 (fig:laplace:nonlinear-sampling-mismatch-bnn)=
-![](assets/laplace_linearized/nonlinear_sampling_mismatch_bnn.png)
+```{image} assets/laplace_linearized/nonlinear_sampling_mismatch_bnn.png
+:width: 45%
+```
 
 The same full Laplace posterior under two predictive rules on a one-dimensional regression example from the code accompanying @immer2021improving. Both panels use the same parameter-space approximate posterior and the same ten parameter draws. They differ only in how each parameter draw becomes a function-space sample called a *sample path* in the GP literature. Panel (a) sends each draw through the linearised network $f^{\theta_*}$, the model consistent with the parameter-space Laplace approximation. Panel (b) sends the draws through the original nonlinear network $f$. Solid curves are predictive means; dashed curves show pointwise $95\%$ credible intervals. The linearised Laplace approximation in Panel (a) yields a GP; therefore, the output-space quantities are available in closed form. The (nonlinear) Laplace approximation in Panel (b) yields an intractable output mean and covariance, which we approximate with two million Monte Carlo samples. The nonlinear scheme is far more uncertain over the training inputs and its mean severely underfits. The linearised Laplace approximation yields consistent function-space uncertainty.
 :::
@@ -677,19 +680,26 @@ The main issue with the above schemes is the requirement of sampling: the error 
 
 :::{figure}
 :label: fig:laplace:classification-predictives
-:class: grid grid-cols-2 items-end gap-4
 
 (fig:laplace:classification-map)=
-![](assets/laplace_linearized/classification_laplace_map.png)
+```{image} assets/laplace_linearized/classification_laplace_map.png
+:width: 45%
+```
 
 (fig:laplace:classification-softmax-mc)=
-![](assets/laplace_linearized/classification_laplace_softmax_mc.png)
+```{image} assets/laplace_linearized/classification_laplace_softmax_mc.png
+:width: 45%
+```
 
 (fig:laplace:classification-probit)=
-![](assets/laplace_linearized/classification_laplace_probit.png)
+```{image} assets/laplace_linearized/classification_laplace_probit.png
+:width: 45%
+```
 
 (fig:laplace:classification-entropy)=
-![](assets/laplace_linearized/classification_laplace_entropy.png)
+```{image} assets/laplace_linearized/classification_laplace_entropy.png
+:width: 45%
+```
 
 Two-dimensional binary classification with a Laplace approximation to the last layer of a fixed-feature network on the Iris dataset. The inputs are the measured sepal width and petal width. White denotes Iris versicolor and black denotes Iris virginica. Circles are training points, triangles are validation points, and squares are test points. The prior precision is selected on the validation set by log score. Panels (a)–(c) show the probability of the black class for the MAP predictor, the softmax posterior predictive estimated by Monte Carlo sampling, and the sample-free probit approximation. Panel (d) shows the predictive entropy computed from the Monte Carlo predictive. On the held-out test points, the MAP log score and Brier score are $0.433$ and $0.122$, while the Monte Carlo GP predictive gives $0.345$ and $0.107$, and the probit predictive gives $0.347$ and $0.108$—close to indistinguishable.
 :::

@@ -71,11 +71,14 @@ Using this as a preconditioner in second-order optimisation means we perform Rie
 
 :::{figure}
 :label: fig:laplace:mfds
-:class: grid grid-cols-2 items-end gap-4
 
-![](assets/laplace_diffgeo/ggn_manifold_tangent.png)
+```{image} assets/laplace_diffgeo/ggn_manifold_tangent.png
+:width: 45%
+```
 
-![](assets/laplace_diffgeo/ggn_manifolds.png)
+```{image} assets/laplace_diffgeo/ggn_manifolds.png
+:width: 45%
+```
 
 *Left:* A fiber manifold $\mathcal M(\theta_0)$ in the parameter space, and its tangent space $T_{\theta_0}\mathcal M(\theta_0)$ at $\theta_0$. The fiber manifold consists of the parameters yielding the same output values on the training data as $\theta_0$ (Equation [](#eq:laplace:fibers)), the tangent space consists of the kernel directions of the GGN at $\theta_0$. *Right:* A collection of three fibers in parameter space. The parameter space is partitioned into a disjoint union of such fibers.
 :::

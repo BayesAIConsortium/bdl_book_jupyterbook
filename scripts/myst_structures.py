@@ -332,9 +332,6 @@ def _figure_images(body: str) -> list[tuple[str, int | None]]:
     return [(m.group(2), _tex_width_to_percent(m.group(1))) for m in pattern.finditer(body)]
 
 
-SUBFIGURE_GRID_CLASS = "grid grid-cols-2 items-end gap-4"
-
-
 def _clean_figure_caption(text: str) -> str:
     """Use the shared native reference conversion inside extracted captions."""
     # Local import: semantic_references uses ExtractedStructure from this module.
@@ -375,12 +372,16 @@ def _subfigures_to_myst(body: str) -> str:
     lines = [":::{figure}"]
     if label:
         lines.append(f":label: {label.group(1)}")
-    lines.extend([f":class: {SUBFIGURE_GRID_CLASS}", ""])
+    lines.append("")
     for image, panel_label, panel_title in panels:
         if panel_label:
             lines.append(f"({panel_label})=")
-        # Image alt text becomes the native subfigure caption.
-        lines.extend([f"![{panel_title}]({image})", ""])
+        # Retain native subfigure anchors and captions with the established
+        # 45% image width; no grid classes or custom stylesheet are needed.
+        lines.extend([f"```{{image}} {image}", ":width: 45%"])
+        if panel_title:
+            lines.append(f":alt: {panel_title}")
+        lines.extend(["```", ""])
     if title:
         lines.append(title)
     lines.append(":::")
@@ -414,24 +415,12 @@ def figure_to_myst(body: str) -> str:
             lines.extend(["", caption])
         lines.append(":::")
         return "\n".join(lines)
-    # Equal-width images that fit on one TeX line use the same native grid
-    # as explicit subfigures. Leave vertically arranged figures unchanged.
-    before_caption = body[:caption_pos] if caption_pos >= 0 else body
-    side_by_side = (
-        len(images) == 2
-        and images[0][1] == images[1][1]
-        and images[0][1] is not None
-        and images[0][1] <= 50
-        and re.search(r"\\\\|\\(?:newline|par)\b", before_caption) is None
-    )
     lines = [":::{figure}"]
     if label:
         lines.append(f":label: {label}")
-    if side_by_side:
-        lines.append(f":class: {SUBFIGURE_GRID_CLASS}")
     lines.append("")
     for image, width in images:
-        if width and not side_by_side:
+        if width:
             lines.extend([f"```{{image}} {image}", f":width: {width}%", "```", ""])
         else:
             lines.extend([f"![]({image})", ""])
