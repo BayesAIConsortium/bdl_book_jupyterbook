@@ -26,10 +26,11 @@ def test_subfigures_keep_parent_caption_and_every_panel_label() -> None:
 """
     markdown = figure_to_myst(source)
     assert ":label: fig:both" in markdown
-    assert "(fig:first)=\n![](first.pdf)" in markdown
-    assert "(fig:second)=\n![Second panel](second.pdf)" in markdown
+    assert "(fig:first)=\n```{image} first.pdf\n:width: 45%" in markdown
+    assert "(fig:second)=\n```{image} second.pdf\n:width: 45%\n:alt: Second panel" in markdown
     assert "Shared caption with $\\theta$ and @paper." in markdown
-    assert ":class: grid grid-cols-2" in markdown
+    assert ":class:" not in markdown
+    assert markdown.count(":width: 45%") == 2
     assert r"\dimexpr" not in markdown
 
 

@@ -10,17 +10,17 @@ from myst_structures import figure_to_myst  # noqa: E402
 from proof_structures import extract_proof_environments  # noqa: E402
 
 
-def test_adjacent_equal_width_images_reuse_native_subfigure_grid() -> None:
+def test_adjacent_equal_width_images_retain_original_width_directives() -> None:
     source = r"""
 \includegraphics[width=.45\textwidth,trim={3cm 3cm 0 0}]{left.pdf}
 \includegraphics[width=.45\textwidth,trim={3cm 3cm 0 0}]{right.pdf}
 \caption{Left and right; see Equation~\ref{eq:fibers}.}\label{fig:manifolds}
 """
     markdown = figure_to_myst(source)
-    assert ":class: grid grid-cols-2 items-end gap-4" in markdown
+    assert ":class:" not in markdown
     assert ":label: fig:manifolds" in markdown
-    assert "![](left.pdf)" in markdown and "![](right.pdf)" in markdown
-    assert ":width: 45%" not in markdown  # Width is supplied by the grid columns.
+    assert "```{image} left.pdf" in markdown and "```{image} right.pdf" in markdown
+    assert markdown.count(":width: 45%") == 2
     assert "Equation [](#eq:fibers)" in markdown
     assert r"\ref" not in markdown
 
