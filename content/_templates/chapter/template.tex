@@ -11,8 +11,18 @@
 % MyST 1.10 does not export proof:algorithm. In the PDF-only source copy it
 % uses the supported axiom container; retain its Algorithm name and counter.
 \ifcsname axiom\endcsname
+\newtheoremstyle{bdlalgorithmbreak}
+  {\topsep}{\topsep}{\itshape}{}{\bfseries}{.}{\newline}{}
+\theoremstyle{bdlalgorithmbreak}
 \newtheorem{bdlalgorithm}{Algorithm}
-\renewenvironment{axiom}{\begin{bdlalgorithm}}{\end{bdlalgorithm}}
+\renewenvironment{axiom}[1][]{%
+  \if\relax\detokenize{#1}\relax
+    \begin{bdlalgorithm}%
+  \else
+    \begin{bdlalgorithm}[{#1}]%
+  \fi
+  \leavevmode
+}{\end{bdlalgorithm}}
 \fi
 \hypersetup{colorlinks=true,allcolors=blue}
 \setlength{\emergencystretch}{3em}
