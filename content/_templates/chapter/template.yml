@@ -1,0 +1,27 @@
+jtex: v1
+title: BDL chapter
+kind: tex
+description: Standalone chapter PDFs from the same MyST content as the website.
+version: 1.0.0
+license: MIT
+template: template.tex
+files:
+  - template.tex
+doc:
+  - id: title
+    required: true
+  - id: bibliography
+options: []
+packages:
+  - amsmath
+  - amssymb
+  - mathtools
+  - bm
+  - cancel
+  - booktabs
+  - geometry
+  - graphicx
+  - hyperref
+  - natbib
+  - subcaption
+  - adjustbox

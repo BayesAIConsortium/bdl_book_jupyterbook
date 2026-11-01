@@ -1,3 +1,20 @@
+---
+title: "Introduction to variational inference"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/vi-intro.pdf
+    id: pdf-vi-intro
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/vi-intro/vi-intro.tex
+downloads:
+  - id: pdf-vi-intro
+    title: Download chapter PDF
+  - file: intro.md
+    title: Download Markdown source
+---
+
 (chap:vi_intro)=
 # Introduction to variational inference
 

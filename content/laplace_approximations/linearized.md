@@ -1,3 +1,20 @@
+---
+title: "Linearised Laplace approximations"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/laplace-approximations-linearized.pdf
+    id: pdf-laplace-approximations-linearized
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/laplace-approximations-linearized/laplace-approximations-linearized.tex
+downloads:
+  - id: pdf-laplace-approximations-linearized
+    title: Download chapter PDF
+  - file: linearized.md
+    title: Download Markdown source
+---
+
 (cha:laplace:linearized)=
 # Linearised Laplace approximations
 

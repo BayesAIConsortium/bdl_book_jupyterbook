@@ -1,3 +1,20 @@
+---
+title: "Sequential Monte Carlo samplers"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/sampling-methods-multilevel-smc.pdf
+    id: pdf-sampling-methods-multilevel-smc
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/sampling-methods-multilevel-smc/sampling-methods-multilevel-smc.tex
+downloads:
+  - id: pdf-sampling-methods-multilevel-smc
+    title: Download chapter PDF
+  - file: multilevel_smc.md
+    title: Download Markdown source
+---
+
 (chap:smcs)=
 # Sequential Monte Carlo samplers
 

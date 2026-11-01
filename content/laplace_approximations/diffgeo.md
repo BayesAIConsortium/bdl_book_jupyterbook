@@ -1,3 +1,20 @@
+---
+title: "The differential geometric perspective on Laplace"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/laplace-approximations-diffgeo.pdf
+    id: pdf-laplace-approximations-diffgeo
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/laplace-approximations-diffgeo/laplace-approximations-diffgeo.tex
+downloads:
+  - id: pdf-laplace-approximations-diffgeo
+    title: Download chapter PDF
+  - file: diffgeo.md
+    title: Download Markdown source
+---
+
 (cha:laplace:diffgeo)=
 # The differential geometric perspective on Laplace
 

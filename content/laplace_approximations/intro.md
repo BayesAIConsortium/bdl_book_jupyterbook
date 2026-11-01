@@ -1,3 +1,20 @@
+---
+title: "Introduction to Laplace approximations"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/laplace-approximations-intro.pdf
+    id: pdf-laplace-approximations-intro
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/laplace-approximations-intro/laplace-approximations-intro.tex
+downloads:
+  - id: pdf-laplace-approximations-intro
+    title: Download chapter PDF
+  - file: intro.md
+    title: Download Markdown source
+---
+
 (cha:laplace:introduction)=
 # Introduction to Laplace approximations
 

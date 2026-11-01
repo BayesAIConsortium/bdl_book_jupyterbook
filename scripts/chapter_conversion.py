@@ -11,6 +11,7 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
+from chapter_downloads import with_chapter_downloads
 from common import TEX_ROOT, display_chapter_title
 from content_structures import (
     CalloutStructure,
@@ -36,7 +37,6 @@ from proof_structures import ProofStructure, extract_proof_environments, proof_d
 from semantic_references import extract_references
 from table_structures import extract_booktabs_tables, extract_metric_tables
 from tex_metadata import source_chapter_title
-
 
 MYST_TIMEOUT_SECONDS = 60
 WEB_IMAGE_EXTENSIONS = (".svg", ".png", ".webp", ".jpg", ".jpeg")
@@ -425,6 +425,11 @@ def convert_chapter(config: ChapterConfig) -> None:
     )
 
     markdown = "\n".join(line.rstrip() for line in markdown.split("\n"))
+    markdown = with_chapter_downloads(
+        markdown,
+        config.output_path,
+        display_chapter_title(config.label, source_chapter_title(source) or config.title),
+    )
     config.output_path.parent.mkdir(parents=True, exist_ok=True)
     config.output_path.write_text(markdown, encoding="utf-8")
     print(f"Wrote {config.output_path}")
