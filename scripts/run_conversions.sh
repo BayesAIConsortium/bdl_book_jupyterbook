@@ -7,3 +7,4 @@ uv run python scripts/generate_book_skeleton.py
 bash scripts/run_frontmatter_conversions.sh
 bash scripts/run_part1_conversions.sh
 bash scripts/run_part2_conversions.sh
+bash scripts/run_part3_conversions.sh

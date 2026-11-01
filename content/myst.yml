@@ -14,6 +14,7 @@ project:
     '\model': '\mathcal{M}'
     '\emprisk': '\mathcal{\hat L}\left(#1,#2\right)'
     '\brackets': '\left(#1\right)'
+    '\varparams': '\lambda'
   bibliography:
     - ../references.bib
   toc:

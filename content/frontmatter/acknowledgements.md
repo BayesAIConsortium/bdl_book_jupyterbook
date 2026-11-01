@@ -10,7 +10,7 @@ The authors acknowledge financial support from Imperial College London through a
 
 Vincent Fortuin was supported by a Branco Weiss Fellowship.
 
-Philipp Hennig, Nathaël da Costa, Tobias Weber, Bálint Mucsányi, and Joanna Sliwa gratefully acknowledge financial support by the European Research Council through ERC CoG Action 101123955 ANUBIS; the DFG Cluster of Excellence “Machine Learning - New Perspectives for Science”, EXC 2064/1; the DFG SPP 2298 (Project HE 7114/5-1), and the Carl Zeiss Foundation, (project "Certification and Foundations of Safe Machine Learning Systems in Healthcare"), as well as funds from the Ministry of Science, Research and Arts of the State of Baden-Württemberg.
+Philipp Hennig, Nathaël Da Costa, Tobias Weber, Bálint Mucsányi, and Joanna Sliwa gratefully acknowledge financial support by the European Research Council through ERC CoG Action 101123955 ANUBIS; the DFG Cluster of Excellence “Machine Learning - New Perspectives for Science”, EXC 2064/1; the DFG SPP 2298 (Project HE 7114/5-1), and the Carl Zeiss Foundation, (project "Certification and Foundations of Safe Machine Learning Systems in Healthcare"), as well as funds from the Ministry of Science, Research and Arts of the State of Baden-Württemberg.
 
 Christian Igel acknowledges support from the Danish National Research Foundation (DNRF) through the Danish Pioneer Centre for AI (P1) and TreeSense, the Center for Remote Sensing and Deep Learning of Global Tree Resources (DNRF192).
 

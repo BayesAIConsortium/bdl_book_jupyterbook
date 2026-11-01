@@ -1,5 +1,9 @@
 # BayesAI Consortium authors
 
+**Theodore Papamarkou**  
+National Technical University of Athens  
+Athens, Greece
+
 **Claudio Agostinelli**  
 University of Trento  
 Trento, Italy
@@ -263,10 +267,6 @@ London, UK
 **Wei Pan**  
 The University of Manchester  
 Manchester, UK
-
-**Theodore Papamarkou**  
-PolyShape  
-Athens, Greece
 
 **Dhruvesh Patel**  
 UMass Amherst  
