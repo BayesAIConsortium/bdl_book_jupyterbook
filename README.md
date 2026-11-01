@@ -49,11 +49,14 @@ The top-level runner first refreshes the generated book skeleton, then delegates
 bash scripts/run_frontmatter_conversions.sh
 bash scripts/run_part1_conversions.sh
 bash scripts/run_part2_conversions.sh
+bash scripts/run_part3_conversions.sh
 ```
 
 `run_part2_conversions.sh` currently converts Chapters 7–11: the introduction to Laplace approximations, linearised Laplace approximations, the differential geometric perspective, analytic functionality, and model selection with the marginal likelihood. To regenerate one alone, run `uv run python scripts/convert_laplace_intro.py`, `uv run python scripts/convert_laplace_linearized.py`, `uv run python scripts/convert_laplace_diffgeo.py`, `uv run python scripts/convert_laplace_analytic_functionality.py`, or `uv run python scripts/convert_laplace_differentiable.py`. Native MyST subfigures preserve panel labels and use image directives at 45% width, consistent with Part 1; simple booktabs tables retain their header row. Callouts become native MyST admonitions; aligned subequations become separate auto-numbered math directives preserving each row label. Project math macros live in `content/myst.yml`. Chapter 11 explicitly sets a 45% fallback for its two-image figure because the TeX supplies no widths; other chapter converters retain their defaults.
 
 `run_frontmatter_conversions.sh` converts the migrated front matter. `run_part1_conversions.sh` converts all six sampling chapters, from *Introduction to sampling* through *Discrete sampling*. As more chapters are migrated, their converters should be added to the corresponding part runner; new part runners can then be called from `run_conversions.sh`. Shared TeX-to-MyST behavior belongs in reusable modules such as `latex_normalize.py` and `myst_structures.py`, rather than in chapter-specific patches whenever possible.
+
+`run_part3_conversions.sh` currently converts Chapter 12, *Introduction to variational inference*. To regenerate it alone, run `uv run python scripts/convert_vi_intro.py`. It uses the shared conversion pipeline and the native MyST `project.math` definition of `\varparams` as `\lambda`; no additional conversion rules or image assets are needed.
 
 To regenerate Chapter 6 alone, run `uv run python scripts/convert_discrete_sampling.py` from the repository root. Figure copying automatically prefers matching SVG, PNG, or other web images over the source PDF. Section references use MyST's native `{name}` substitution, so links to headings in other chapters display their current titles automatically.
 
