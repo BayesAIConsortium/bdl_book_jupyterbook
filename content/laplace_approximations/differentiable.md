@@ -1,3 +1,20 @@
+---
+title: "Model selection with the marginal likelihood"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/laplace-approximations-differentiable.pdf
+    id: pdf-laplace-approximations-differentiable
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/laplace-approximations-differentiable/laplace-approximations-differentiable.tex
+downloads:
+  - id: pdf-laplace-approximations-differentiable
+    title: Download chapter PDF
+  - file: differentiable.md
+    title: Download Markdown source
+---
+
 (cha:laplace:model_selection)=
 # Model selection with the marginal likelihood
 

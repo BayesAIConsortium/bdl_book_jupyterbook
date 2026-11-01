@@ -1,3 +1,20 @@
+---
+title: "Discrete sampling"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/sampling-methods-discrete-sampling.pdf
+    id: pdf-sampling-methods-discrete-sampling
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/sampling-methods-discrete-sampling/sampling-methods-discrete-sampling.tex
+downloads:
+  - id: pdf-sampling-methods-discrete-sampling
+    title: Download chapter PDF
+  - file: discrete_sampling.md
+    title: Download Markdown source
+---
+
 (chap:sampling_methods_discrete_sampling)=
 # Discrete sampling
 

@@ -1,3 +1,20 @@
+---
+title: "Low-precision sampling"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/sampling-methods-low-precision-sampling.pdf
+    id: pdf-sampling-methods-low-precision-sampling
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/sampling-methods-low-precision-sampling/sampling-methods-low-precision-sampling.tex
+downloads:
+  - id: pdf-sampling-methods-low-precision-sampling
+    title: Download chapter PDF
+  - file: low_precision_sampling.md
+    title: Download Markdown source
+---
+
 (chap:sampling_methods_low_precision_sampling)=
 # Low-precision sampling
 

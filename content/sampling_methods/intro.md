@@ -1,3 +1,20 @@
+---
+title: "Introduction to sampling"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/sampling-methods-intro.pdf
+    id: pdf-sampling-methods-intro
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/sampling-methods-intro/sampling-methods-intro.tex
+downloads:
+  - id: pdf-sampling-methods-intro
+    title: Download chapter PDF
+  - file: intro.md
+    title: Download Markdown source
+---
+
 (chap:sampling:intro)=
 # Introduction to sampling
 

@@ -1,3 +1,20 @@
+---
+title: "Simulation-based inference"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/sampling-methods-sbi.pdf
+    id: pdf-sampling-methods-sbi
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/sampling-methods-sbi/sampling-methods-sbi.tex
+downloads:
+  - id: pdf-sampling-methods-sbi
+    title: Download chapter PDF
+  - file: sbi.md
+    title: Download Markdown source
+---
+
 (chap:sbi:intro)=
 # Simulation-based inference
 

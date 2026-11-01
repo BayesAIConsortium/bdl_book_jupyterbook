@@ -1,3 +1,20 @@
+---
+title: "Analytic, low-cost functionality from Laplace"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/laplace-approximations-analytic-functionality.pdf
+    id: pdf-laplace-approximations-analytic-functionality
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/laplace-approximations-analytic-functionality/laplace-approximations-analytic-functionality.tex
+downloads:
+  - id: pdf-laplace-approximations-analytic-functionality
+    title: Download chapter PDF
+  - file: analytic_functionality.md
+    title: Download Markdown source
+---
+
 (cha:laplace:analytic_functionality)=
 # Analytic, low-cost functionality from Laplace
 

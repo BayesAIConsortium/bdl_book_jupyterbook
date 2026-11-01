@@ -1,3 +1,20 @@
+---
+title: "Stochastic gradient MCMC"
+exports:
+  - format: pdf
+    template: ../_templates/chapter
+    output: ../_build/exports/chapters/sampling-methods-sg-mcmc.pdf
+    id: pdf-sampling-methods-sg-mcmc
+  - format: tex
+    template: ../_templates/chapter
+    output: ../_build/tex/sampling-methods-sg-mcmc/sampling-methods-sg-mcmc.tex
+downloads:
+  - id: pdf-sampling-methods-sg-mcmc
+    title: Download chapter PDF
+  - file: sg_mcmc.md
+    title: Download Markdown source
+---
+
 (chap:sampling_methods_sg_mcmc)=
 # Stochastic gradient MCMC
 

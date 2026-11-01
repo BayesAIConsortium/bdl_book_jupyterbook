@@ -1,0 +1,38 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=25mm]{geometry}
+\usepackage{amsmath,amssymb,mathtools,bm,cancel,booktabs}
+\usepackage{graphicx}
+\usepackage{adjustbox}
+\usepackage{subcaption}
+\usepackage{natbib}
+\usepackage[hypertexnames=false]{hyperref}
+\bibliographystyle{abbrvnat}
+[-IMPORTS-]
+% MyST 1.10 does not export proof:algorithm. In the PDF-only source copy it
+% uses the supported axiom container; retain its Algorithm name and counter.
+\ifcsname axiom\endcsname
+\newtheoremstyle{bdlalgorithmbreak}
+  {\topsep}{\topsep}{\itshape}{}{\bfseries}{.}{\newline}{}
+\theoremstyle{bdlalgorithmbreak}
+\newtheorem{bdlalgorithm}{Algorithm}
+\renewenvironment{axiom}[1][]{%
+  \if\relax\detokenize{#1}\relax
+    \begin{bdlalgorithm}%
+  \else
+    \begin{bdlalgorithm}[{#1}]%
+  \fi
+  \leavevmode
+}{\end{bdlalgorithm}}
+\fi
+\hypersetup{colorlinks=true,allcolors=blue}
+\setlength{\emergencystretch}{3em}
+\title{[-doc.title-]}
+\author{BayesAI Consortium}
+\date{}
+\begin{document}
+\maketitle
+[-CONTENT-]
+[# if doc.bibliography #]
+\bibliography{[-doc.bibliography | join(", ")-]}
+[# endif #]
+\end{document}

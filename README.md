@@ -75,22 +75,37 @@ uv run jupyter book start
 
 Run `uv sync --extra dev` first when setting up a fresh checkout or whenever dependencies in `pyproject.toml` change.
 
-For a production HTML build, run from the repository root:
+For a production build with chapter PDFs and both download choices, run from the repository root:
 
 ```bash
-cd content
-uv run jupyter book build --html
+uv run python scripts/build_site.py
 ```
+
+Each migrated chapter has native MyST exports and two labelled entries in its Downloads menu: **Download chapter PDF** and **Download Markdown source**. PDFs are compiled from the same MyST content before HTML is built; visitors download static files without running a compiler. Placeholder chapters receive no PDF download. New chapter conversions add this metadata automatically; `uv run python scripts/chapter_downloads.py` updates already migrated chapters without changing their bodies.
+
+The shared native MyST LaTeX template is in `content/_templates/chapter/`. The build script exports TeX with MyST and compiles with Tectonic, which also handles bibliography generation. On Linux x86-64 it uses an installed Tectonic or downloads the pinned official 0.17.0 binary with SHA-256 verification into the ignored `_build/tools/` cache. On other platforms, install Tectonic first. The first compilation downloads and caches TeX packages; subsequent builds reuse that cache. No system LaTeX installation is required by this build script.
+
+The PDF build uses an isolated copy of the MyST pages to work around exporter limitations in MyST 1.10: algorithm containers retain their Algorithm presentation, labelled align blocks retain their references, blank math lines are normalized, and nested figure floats become standard LaTeX subfigures with their parent/panel labels. The existing bibliography is copied directly to preserve author-name accents. These PDF-only adaptations never rewrite chapter bodies or change the online 45% figure layout. Unsupported exports fail the build rather than silently publishing an incomplete PDF.
+
+To rebuild one chapter PDF, then preview locally:
+
+```bash
+uv run python scripts/build_site.py --chapter vi/intro.md --pdf-only
+cd content
+uv run jupyter book start
+```
+
+After modifying other chapters, rebuild their PDFs too, or omit `--chapter` to refresh all chapter PDFs. For an HTML-only rebuild after the PDFs already exist, use `cd content && uv run jupyter book build --html`. PDFs live in `content/_build/exports/chapters/`; the site build bundles them for download. Cross-chapter PDF links point to the online book.
 
 ## Netlify
 
 Because the MyST project root is `content/`, Netlify must build from that directory while still installing the Python project from the repository root. Use:
 
 ```text
-Build command: python -m pip install . && cd content && jupyter book build --html
+Build command: python -m pip install . && python scripts/build_site.py
 Publish directory: content/_build/html
 ```
 
-The Netlify base directory should remain blank / at the repository root.
+The tracked `netlify.toml` configures this build command and publish directory. The Netlify base directory should remain blank / at the repository root.
 
 The repository is intentionally book-first rather than a reusable Python package. TeX-to-MyST migration helpers live under `scripts/`.
